@@ -37,11 +37,9 @@ ORCore::ORCore(ros::NodeHandle *_n)
 
   //subscribers
   features_sub_ = _n->subscribe(sub_features_topic_name_.c_str(), 1, &ORCore::featuresCallback, this);
-  trajectory_sub_ = _n->subscribe(sub_trajectory_topic_name_.c_str(), 1, &ORCore::trajectoryCallback, this);
 
   //publishers
-  ptpairs_pub_ = _n->advertise<sscrovers_pmslam_common::PtPairs>(pub_ptpairs_topic_name_.c_str(), 1);
-  db_pub_ = _n->advertise<sscrovers_pmslam_common::SALVector>("SAL_db", 1);
+  db_pub_ = _n->advertise<sscrovers_pmslam_common::featureUpdateArray>("SAL_db", 1);
 
   data_completed_f_ = false;
   latest =false;	
@@ -57,36 +55,16 @@ void ORCore::process()
 {
   //put here everything that should run with node loop
   //if get complet data and step is updated
-  if ((data_completed_f_) && (step_ > 0))
+  if (step_ > 0)
   {
-    data_completed_f_ = false;
-
     filter();
-    publishPtPairs();
     publishDB(); //send data to DB
   }
 }
 
-void ORCore::sendToSurfDataBase()
-{
-  //publishing all db
-}
 
-void ORCore::publishPtPairs()
-{
-  // push forward stamp
-  ptpairs_msg_.header.stamp = stamp_;
-  // size of data to publish
-  int size = pp.size();
-  //reserve space for data;
-  ptpairs_msg_.pairs.resize(size);
-  // copy data to message structure
-  memcpy(ptpairs_msg_.pairs.data(), pp.data(), size * sizeof(int)); 
-  // publish msg
-  ptpairs_pub_.publish(ptpairs_msg_);
-  pp.clear();
 
-}
+
 
 void ORCore::featuresCallback(const geometry_msgs::PoseArray& msg)
 {
@@ -194,12 +172,6 @@ void ORCore::filter()
 			sp.height = NVec.atH(p);
 			sp.width = NVec.atW(p);
 			sp.id = 0;
-			sp.r.x = curr_pose_ptr_->x;
-			sp.r.y = curr_pose_ptr_->y;
-			sp.r.z = curr_pose_ptr_->z;
-			sp.r.yaw = curr_pose_ptr_->yaw;
-			sp.r.pitch = curr_pose_ptr_->pitch;
-			sp.r.roll = curr_pose_ptr_->roll;
 
 			vs.push_back(sp);
 
@@ -246,12 +218,7 @@ void ORCore::filter()
 				vs[object].y = NVec.atY(e);
 				vs[object].height = NVec.atH(e);
 				vs[object].width = NVec.atW(e);
-				vs[object].r.x = curr_pose_ptr_->x;
-				vs[object].r.y = curr_pose_ptr_->y;
-				vs[object].r.z = curr_pose_ptr_->z;
-				vs[object].r.yaw = curr_pose_ptr_->yaw;
-				vs[object].r.pitch = curr_pose_ptr_->pitch;
-				vs[object].r.roll = curr_pose_ptr_->roll;
+
 					
 			}else if(plast.frame == -2){
 			//n-2 frame
@@ -267,12 +234,7 @@ void ORCore::filter()
 				vs[object].y = NVec.atY(e);
 				vs[object].height = NVec.atH(e);
 				vs[object].width = NVec.atW(e);
-				vs[object].r.x = curr_pose_ptr_->x;
-				vs[object].r.y = curr_pose_ptr_->y;
-				vs[object].r.z = curr_pose_ptr_->z;
-				vs[object].r.yaw = curr_pose_ptr_->yaw;
-				vs[object].r.pitch = curr_pose_ptr_->pitch;
-				vs[object].r.roll = curr_pose_ptr_->roll;
+
 
 			}else{
 			//new object
@@ -286,12 +248,6 @@ void ORCore::filter()
 				sp.y = NVec.atY(e);
 				sp.height = NVec.atH(e);
 				sp.width = NVec.atW(e);
-				sp.r.x = curr_pose_ptr_->x;
-				sp.r.y = curr_pose_ptr_->y;
-				sp.r.z = curr_pose_ptr_->z;
-				sp.r.yaw = curr_pose_ptr_->yaw;
-				sp.r.pitch = curr_pose_ptr_->pitch;
-				sp.r.roll = curr_pose_ptr_->roll;
 				vs.push_back(sp);
 			}
 		}
@@ -307,60 +263,26 @@ void ORCore::filter()
 }
 
 
-void ORCore::trajectoryCallback(const nav_msgs::PathConstPtr& msg)
-{
-  curr_pose_ptr_ = new RoverState;
-  est_traj_msg_ = *msg;
-  if (step_ >= 0)
-  {
-    if ((int)est_traj_msg_.poses.size() > step_)
-    {
-      curr_pose_ptr_->x = est_traj_msg_.poses[step_].pose.position.x;
-      curr_pose_ptr_->y = est_traj_msg_.poses[step_].pose.position.y;
-      curr_pose_ptr_->z = est_traj_msg_.poses[step_].pose.position.z;
-
-      double _roll, _pitch, _yaw;
-#if ROS_VERSION_MINIMUM(1, 8, 0) // if current ros version is >= 1.8.0 (fuerte)
-      //min. fuerte
-      tf::Quaternion _q;
-      tf::quaternionMsgToTF(est_traj_msg_.poses[step_].pose.orientation, _q);
-      tf::Matrix3x3(_q).getRPY(_roll, _pitch, _yaw);
-#else
-      //electric and older
-      btQuaternion _q;
-      tf::quaternionMsgToTF(est_traj_msg_.poses[step_].pose.orientation, _q);
-      btMatrix3x3(_q).getRPY(_roll, _pitch, _yaw);
-#endif
-
-      curr_pose_ptr_->roll = _roll;
-      curr_pose_ptr_->pitch = _pitch;
-      curr_pose_ptr_->yaw = _yaw;
-
-      data_completed_f_ = true;
-
-    }
-    else
-    {
-      ROS_WARN("There is no trajectory point corresponding to features data...1");
-      data_completed_f_ = false;
-    }
-  }
-
-  
-}
-
 void ORCore::publishDB()
 {
-	if(vs.size()>0){
-		sscrovers_pmslam_common::SALVector sal_db;
-
-		sal_db.header.stamp.nsec = step_;
-		sal_db.dims = vs.size();
-		sal_db.data.resize(vs.size());
-		memcpy(sal_db.data.data(), vs.data(), sizeof(sscrovers_pmslam_common::SPoint) * vs.size()); 
-
-		db_pub_.publish(sal_db);
+ 	local_msgs_.header.stamp.nsec = step_;
+	local_msgs_.features.clear();
+	for(int i=0; i<vs.size();i++){
+		if(vs[i].step ==step_){
+			sscrovers_pmslam_common::featureUpdate temp;
+			temp.id = i;
+			temp.x = vs[i].x;
+			temp.x = vs[i].y;
+			if(vs[i].id == 1){
+				vs[i].id = 0;
+				temp.exists = false;
+			}else{
+				temp.exists = true;
+			}
+			local_msgs_.features.push_back(temp);
+		}
 	}
+	db_pub_.publish(local_msgs_);
 }
 
 //-----------------------------MAIN-------------------------------

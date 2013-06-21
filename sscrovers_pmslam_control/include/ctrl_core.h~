@@ -22,6 +22,7 @@
 #include <geometry_msgs/PoseStamped.h>
 #include <nav_msgs/Odometry.h>
 #include <nav_msgs/Path.h>
+#include  <sscrovers_pmslam_common/control_vec.h>
 
 namespace enc = sensor_msgs::image_encodings;
 
@@ -96,16 +97,9 @@ private:
   ros::Subscriber odom_sub_;
 
   //! current position of the robot
-  geometry_msgs::PoseStamped ctrl_vec_msg_, curr_pose_msg_;
+  geometry_msgs::PoseStamped curr_pose_msg_;
 
-  //! true trajectory
-  nav_msgs::Path true_trajectory_msg_;
-
-  //! estimated trajectory
-  nav_msgs::Path est_trajectory_msg_;
-
-  //! input trajectory
-  nav_msgs::Path in_trajectory_msg_;
+  sscrovers_pmslam_common::control_vec ctrl_vec_msg_;
 
   //! position noises
   double xy_noise_;
@@ -118,10 +112,10 @@ private:
   //double camera_z_;
 
   //! Function for current odometry information processing
-  void processOdometry();
+
 
   //! Function for trajectories updating
-  void processTrajectory();
+
 
   //! Function for image message processing
   void processImage();
@@ -130,7 +124,6 @@ private:
   void publishImage();
 
   //! Function for publishing travelled trajectory data
-  void publishTrajectories();
 
   //! Function for publishing current control vector
   void publishCtrlVector();
@@ -141,7 +134,6 @@ private:
   //! callback function for odometry subscription
   void odomCallBack(const nav_msgs::OdometryConstPtr& msg);
 
-  dySubscriber<nav_msgs::Odometry> ds;
 };
 
 #endif //FD_CORE_H

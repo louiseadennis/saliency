@@ -22,7 +22,7 @@ FtrCore::FtrCore(ros::NodeHandle *_n)
   // Initialise node parameters from launch file or command line.
   // Use a private node handle so that multiple instances of the node can be run simultaneously
   // while using different parameters.
-  ros::NodeHandle private_node_handle("~");
+  ros::NodeHandle privmte_node_handle("~");
   private_node_handle.param("rate", rate_, int(10));
   //! topics name
   //private_node_handle.param("pub_map3d_topic_name", pub_map3d_topic_name_, string("map3d"));
@@ -118,7 +118,7 @@ void FtrCore::publishMap3D()
   points.action = visualization_msgs::Marker::ADD;
   //map3d_msg_.header.stamp.nsec = step_;
   //map3d_msg_.landmarks.resize(info_filter_ptr_->map3d_ptr_->map.size());
-  for (unsigned int i = 0; i < map3d_msg_.landmarks.size(); i++)
+  for (unsigned int i = 0; i < info_filter_ptr_->map3d_ptr_->map.size(); i++)
   {
     /*map3d_msg_.landmarks[i].index = info_filter_ptr_->map3d_ptr_->map[i].index;
     map3d_msg_.landmarks[i].matpos = info_filter_ptr_->map3d_ptr_->map[i].matPos;

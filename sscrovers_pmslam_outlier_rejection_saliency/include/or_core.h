@@ -23,6 +23,8 @@
 #include "sscrovers_pmslam_common/DynamicArray.h"
 #include "sscrovers_pmslam_common/DynamicArrayFeature.h"
 
+#include "sscrovers_pmslam_common/featureUpdateArray.h"
+#include "sscrovers_pmslam_common/featureUpdate.h"
 //pmslam function class
 #include "filter_keypoints_or.h"
 #include "SALPointDB.h"
@@ -114,17 +116,11 @@ private:
   //! Object of functional class
   FilterKeypointsOR* filter_keypoints_ptr_;
 
-  //! send new surf features to data base
-  void sendToSurfDataBase();
-
-  //! Function for indexes to pair points with data base
-  void publishPtPairs();
 
   //! Callback function for features subscription.
   void featuresCallback(const geometry_msgs::PoseArray& msg);
 
   //! Callback function for trajectory subscription.
-  void trajectoryCallback(const nav_msgs::PathConstPtr& msg);
   void filter();
 
 
@@ -133,6 +129,8 @@ private:
   void publishDB();
   ptpairs nearestNeighbour();
   ptpairs nearestNeighbour2(SALPointVec N, SALPointVec NM2, ptpairs in);
+
+  sscrovers_pmslam_common::featureUpdateArray local_msgs_;
 
 };
 
