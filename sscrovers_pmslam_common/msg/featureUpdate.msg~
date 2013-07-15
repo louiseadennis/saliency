@@ -1,5 +1,0 @@
-# feature db update
-uint32 id
-bool new
-float32 x
-float32 y
