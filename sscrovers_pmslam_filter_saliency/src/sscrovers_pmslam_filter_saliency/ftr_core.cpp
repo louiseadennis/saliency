@@ -2,6 +2,7 @@
 #include <iostream>
 #include <fstream>
 #include <sstream>
+#include <visualization_msgs/MarkerArray.h>
 
 using std::stringstream;
 using std::endl;
@@ -16,7 +17,7 @@ string convertInt(int number)
 
 FtrCore::FtrCore(ros::NodeHandle *_n)
 {
-  info_filter_ptr_ = new InformationFilterFtr();
+  info_filter_ptr_ = new InformationFilterFtr(_n);
 
   // Initialise node parameters from launch file or command line.
   // Use a private node handle so that multiple instances of the node can be run simultaneously
@@ -47,7 +48,9 @@ FtrCore::FtrCore(ros::NodeHandle *_n)
 
   //!publishers
   pmdata_pub_ = _n->advertise<sscrovers_pmslam_common::PMSlamData>(pub_output_data_topic_name_.c_str(), 10);
-  db_pub_ = _n->advertise<sscrovers_pmslam_common::DynamicArray>("output_db", 10);
+  //db_pub_ = _n->advertise<sscrovers_pmslam_common::DynamicArray>("output_db", 10);
+  //map3d_pub__n->advertise<sscrovers_pmslam_common::PMSlamData>("map3d", 10);
+  marker_pub = n.advertise<visualization_msgs::MarkerArray>("visualization_marker", 10);
 
   step_ = -1;
 
@@ -84,7 +87,7 @@ void FtrCore::process()
       }
       else
       {
-        ROS_INFO("Create Map");
+        //ROS_INFO("Create Map");
         info_filter_ptr_->CreateMap(_u, &ptpairs_, &points3d_);
       }
     }
@@ -92,37 +95,66 @@ void FtrCore::process()
   }
   delete _u;
 
-  //publishMap3D();
+  publishMap3D();
   publishPMSlamData();
-  publishDB();
+  //publishDB();
 }
 
 void FtrCore::publishMap3D()
 {
-  map3d_msg_.header.stamp.nsec = step_;
-  map3d_msg_.landmarks.resize(info_filter_ptr_->map3d_ptr_->map.size());
-  for (unsigned int i = 0; i < map3d_msg_.landmarks.size(); i++)
+  visualization_msgs::MarkerArray markers;
+  visualization_msgs::Marker points;
+  points.type = visualization_msgs::Marker::CUBE;
+  points.color.r = 0.0f;
+  points.color.g = 1.0f;
+  points.color.b = 0.0f;
+  points.color.a = .05;
+  points.scale.x = .05;
+  points.scale.y = .05;
+  points.scale.z = .05;
+  points.header.frame_id = "/map";
+  points.header.stamp = ros::Time::now();
+  points.ns = "basic_shapes";
+  points.action = visualization_msgs::Marker::ADD;
+  //map3d_msg_.header.stamp.nsec = step_;
+  //map3d_msg_.landmarks.resize(info_filter_ptr_->map3d_ptr_->map.size());
+  for (unsigned int i = 0; i < info_filter_ptr_->map3d_ptr_->map.size(); i++)
   {
-    map3d_msg_.landmarks[i].index = info_filter_ptr_->map3d_ptr_->map[i].index;
+    /*map3d_msg_.landmarks[i].index = info_filter_ptr_->map3d_ptr_->map[i].index;
     map3d_msg_.landmarks[i].matpos = info_filter_ptr_->map3d_ptr_->map[i].matPos;
     map3d_msg_.landmarks[i].position.x = info_filter_ptr_->map3d_ptr_->map[i].position.x;
     map3d_msg_.landmarks[i].position.y = info_filter_ptr_->map3d_ptr_->map[i].position.y;
     map3d_msg_.landmarks[i].position.z = info_filter_ptr_->map3d_ptr_->map[i].position.z;
-    map3d_msg_.landmarks[i].stddev = info_filter_ptr_->map3d_ptr_->map[i].stddev;
+    map3d_msg_.landmarks[i].stddev = info_filter_ptr_->map3d_ptr_->map[i].stddev;*/
+    points.id = info_filter_ptr_->map3d_ptr_->map[i].index;
+    points.pose.position.x = info_filter_ptr_->map3d_ptr_->map[i].position.x;
+    points.pose.position.y = info_filter_ptr_->map3d_ptr_->map[i].position.y;
+    points.pose.position.z = info_filter_ptr_->map3d_ptr_->map[i].position.z;
+    points.pose.orientation.x = 0.0;
+    points.pose.orientation.y = 0.0;
+    points.pose.orientation.z = 0.0;
+    points.pose.orientation.w = 1.0;
+    markers.markers.push_back(points);
   }
-  map3d_pub_.publish(map3d_msg_);
+  //map3d_pub_.publish(map3d_msg_);
+  marker_pub.publish(markers);
 }
 
 void FtrCore::publishPMSlamData()
 {
+
+
   pmslam_data_msg_.header.stamp.nsec = step_;
   pmslam_data_msg_.map_out.resize(info_filter_ptr_->PMSLAM_Data_msg.MapOut.positions.x.size());
   for (unsigned int i = 0; i < pmslam_data_msg_.map_out.size(); i++)
   {
+
+
     pmslam_data_msg_.map_out[i].pt.x = info_filter_ptr_->PMSLAM_Data_msg.MapOut.positions.x[i];
     pmslam_data_msg_.map_out[i].pt.y = info_filter_ptr_->PMSLAM_Data_msg.MapOut.positions.y[i];
     pmslam_data_msg_.map_out[i].pt.z = info_filter_ptr_->PMSLAM_Data_msg.MapOut.positions.z[i];
     pmslam_data_msg_.map_out[i].id = info_filter_ptr_->PMSLAM_Data_msg.MapOut.ID[i];
+    
   }
   pmslam_data_msg_.trajectory_out.position.x = info_filter_ptr_->PMSLAM_Data_msg.TrajectoryOut.x;
   pmslam_data_msg_.trajectory_out.position.y = info_filter_ptr_->PMSLAM_Data_msg.TrajectoryOut.y;
@@ -180,6 +212,7 @@ void FtrCore::ptpairs3dCallBack(const sscrovers_pmslam_common::PairedPoints3DCon
   unsigned int in_size = msg->pts.size();
   ptpairs_.resize(in_size);
   points3d_.resize(in_size);
+
   for (unsigned int i = 0; i < in_size; i++)
   {
     ptpairs_[i] = msg->pts[i].id;

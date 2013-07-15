@@ -23,6 +23,14 @@
 #include "sscrovers_pmslam_common/PtPairs.h"
 #include "sscrovers_pmslam_common/DynamicArray.h"
 
+
+
+#include "sscrovers_pmslam_common/featureUpdateArray.h"
+#include "sscrovers_pmslam_common/featureUpdate.h"
+
+#include "sscrovers_pmslam_common/featureUpdate3DArray.h"
+#include "sscrovers_pmslam_common/featureUpdate3D.h"
+
 //pmslam modules
 #include "direct_depth_dp.h"
 #include "triangulate_dp.h"
@@ -96,9 +104,12 @@ private:
   void trajectoryCallBack(const nav_msgs::PathConstPtr& msg);
 
   //! Callback function for features database subscription.
-  void featuresDBCallBack(const sscrovers_pmslam_common::SALVector& msg);
+  void featuresDBCallBack(const sscrovers_pmslam_common::featureUpdateArray& msg);
 
+  sscrovers_pmslam_common::featureUpdate3D direct_depth(sscrovers_pmslam_common::featureUpdate ft, double camh, double vfov, double hfov, double pan, double tilt);
 
+  sscrovers_pmslam_common::featureUpdateArray arrt;
+  sscrovers_pmslam_common::featureUpdate3DArray out;
 };
 
 #endif //DP_CORE_H

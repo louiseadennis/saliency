@@ -4,7 +4,7 @@ project(sscrovers_pmslam_outlier_rejection_saliency)
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
-find_package(catkin REQUIRED COMPONENTS cv_bridge image_transport roscpp sscrovers_pmslam_common tf dynamic geometry_msgs)
+find_package(catkin REQUIRED COMPONENTS cv_bridge image_transport roscpp sscrovers_pmslam_common tf geometry_msgs)
 
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
@@ -50,7 +50,7 @@ find_package(catkin REQUIRED COMPONENTS cv_bridge image_transport roscpp sscrove
 catkin_package(
    INCLUDE_DIRS include
 #  LIBRARIES sscrovers_pmslam_outlier_rejection
-   CATKIN_DEPENDS cv_bridge image_transport roscpp sscrovers_pmslam_common tf dynamic geometry_msgs
+   CATKIN_DEPENDS cv_bridge image_transport roscpp sscrovers_pmslam_common tf geometry_msgs
 #  DEPENDS system_lib
 )
 
@@ -91,14 +91,19 @@ set (CMAKE_CXX_FLAGS "-std=c++0x")
 	src/${PROJECT_NAME}/ptpairs.cpp
 )
 
- add_executable(or_node_dy_s
-	src/${PROJECT_NAME}/or_core_dy.cpp
+ add_executable(rt_node_s
+	src/${PROJECT_NAME}/rt_core.cpp
 	src/${PROJECT_NAME}/filter_keypoints_or.cpp
 	src/${PROJECT_NAME}/RoverState.cpp
 	src/${PROJECT_NAME}/surf.cpp
 	src/${PROJECT_NAME}/SURFPoint.cpp
 	src/${PROJECT_NAME}/features_db.cpp
+	src/${PROJECT_NAME}/SALPoint.cpp
+	src/${PROJECT_NAME}/SALPointVec.cpp
+	src/${PROJECT_NAME}/SALPointDB.cpp
+	src/${PROJECT_NAME}/ptpairs.cpp
 )
+
 
 ## Add cmake target dependencies of the executable/library
 ## as an example, message headers may need to be generated before nodes
@@ -109,9 +114,11 @@ set (CMAKE_CXX_FLAGS "-std=c++0x")
    ${catkin_LIBRARIES}
  )
 
- target_link_libraries(or_node_dy_s
+ target_link_libraries(rt_node_s
    ${catkin_LIBRARIES}
  )
+
+
 
 #############
 ## Install ##

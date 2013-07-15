@@ -1,10 +1,13 @@
 #include "information_filter_ftr.h"
-#include "ros/ros.h"
 
-InformationFilterFtr::InformationFilterFtr() 
+
+InformationFilterFtr::InformationFilterFtr(ros::NodeHandle * nh) 
 {
   slam_filter_ptr_ = new EIF();
   map3d_ptr_ = new Map();
+  ros::param::set("filter",false);
+
+
 }
 
 InformationFilterFtr::~InformationFilterFtr()
@@ -18,7 +21,7 @@ void InformationFilterFtr::update(int step, RoverState s, std::vector<sscrovers_
 	curr_pose_ptr_= s;
 	step_ptr_ = step;
 	db_ptr_ = sVec;
-ROS_INFO("step=%i",step_ptr_);
+	idVec.resize(sVec.size());
 	
 }
 
@@ -68,18 +71,22 @@ void InformationFilterFtr::CreateMap(Mat *u, vector<int> *ptpairsCMin, vector<Cv
     for (unsigned int j = 0; j < ptpairsCMin->size(); j ++)
     {
 
-
+      ros::param::set("filter", true);	
       temp.x = (*pointsCMin)[j ].x;
       temp.y = (*pointsCMin)[j ].y;
       temp.z = (*pointsCMin)[j ].z;
 
       if ((*SDatabase)[(*ptpairsCMin)[j]].id == 0) // if new landmark
       {
-ROS_INFO("New Landmark");
+//ROS_INFO("New Landmark");
+//lnadmark added
+	
+
         vn.push_back(temp);
         vrn.push_back(0.001);
 
         (*SDatabase)[(*ptpairsCMin)[j]].id = Map3D->map.size();
+	idVec[(*ptpairsCMin)[j]] = Map3D->map.size();
         (*pointsCMin)[j].x = (*pointsCMin)[j].x + RoverTrajectory->tEST[*STEP].x;
         (*pointsCMin)[j].y = (*pointsCMin)[j].y + RoverTrajectory->tEST[*STEP].y;
         (*pointsCMin)[j].z = (*pointsCMin)[j].z + RoverTrajectory->tEST[*STEP].z;
@@ -91,10 +98,10 @@ ROS_INFO("New Landmark");
       else
       {
         // Update EIF
-ROS_INFO("Update Landmark");
-        ids.push_back(Map3D->map[(*SDatabase)[(*ptpairsCMin)[j]].id].matPos);
+//ROS_INFO("Update Landmark");
+        ids.push_back(Map3D->map[idVec[(*ptpairsCMin)[j]]].matPos);
 
-        vrf.push_back(Map3D->map[(*SDatabase)[(*ptpairsCMin)[j]].id].stddev);
+        vrf.push_back(Map3D->map[idVec[(*ptpairsCMin)[j]]].stddev);
 
 
         vf.push_back(temp);
@@ -116,28 +123,28 @@ ROS_INFO("Update Landmark");
     PMSLAM_Data_msg.TrajectoryOut.y = RoverTrajectory->tEST[*STEP].y;
     PMSLAM_Data_msg.TrajectoryOut.z = RoverTrajectory->tEST[*STEP].z;
 
-ROS_INFO("(%f, %f, %f)",PMSLAM_Data_msg.TrajectoryOut.x,PMSLAM_Data_msg.TrajectoryOut.y,PMSLAM_Data_msg.TrajectoryOut.z);
+//ROS_INFO("(%f, %f, %f)",PMSLAM_Data_msg.TrajectoryOut.x,PMSLAM_Data_msg.TrajectoryOut.y,PMSLAM_Data_msg.TrajectoryOut.z);
 
     // update map
     //#seg fault----------
 
     for (unsigned int i = 0; i < SDatabase->size(); ++i)
     {
-      if (((*SDatabase)[i].id > 0) && ((*SDatabase)[i].id < (int)Map3D->map.size()))
+      if ((idVec[i] > 0) && (idVec[i]< (int)Map3D->map.size()))
       {
         //ROS_INFO("IDIDID: %d\nsizesize: %d",(*SURFDatabase)[i].id, Map3D->map.size());
         //wrong id in database
-        id = Map3D->map[(*SDatabase)[i].id].matPos * 3 + 3;
+        id = Map3D->map[idVec[i]].matPos * 3 + 3;
 
-        Map3D->map[(*SDatabase)[i].id].position.x = (*slam_filter_ptr_->mu).at<double>(id, 0);
-        Map3D->map[(*SDatabase)[i].id].position.y = (*slam_filter_ptr_->mu).at<double>(id + 1, 0);
-        Map3D->map[(*SDatabase)[i].id].position.z = (*slam_filter_ptr_->mu).at<double>(id + 2, 0);
+        Map3D->map[idVec[i]].position.x = (*slam_filter_ptr_->mu).at<double>(id, 0);
+        Map3D->map[idVec[i]].position.y = (*slam_filter_ptr_->mu).at<double>(id + 1, 0);
+        Map3D->map[idVec[i]].position.z = (*slam_filter_ptr_->mu).at<double>(id + 2, 0);
 
         // Assigning data to the feature position and gtruth vectors
-        PMSLAM_Data_msg.MapOut.ID.push_back((*SDatabase)[i].id);
-        PMSLAM_Data_msg.MapOut.positions.y.push_back(Map3D->map[(*SDatabase)[i].id].position.x);
-        PMSLAM_Data_msg.MapOut.positions.x.push_back(Map3D->map[(*SDatabase)[i].id].position.y);
-        PMSLAM_Data_msg.MapOut.positions.z.push_back(Map3D->map[(*SDatabase)[i].id].position.z);
+        PMSLAM_Data_msg.MapOut.ID.push_back(idVec[i]);
+        PMSLAM_Data_msg.MapOut.positions.y.push_back(Map3D->map[idVec[i]].position.x);
+        PMSLAM_Data_msg.MapOut.positions.x.push_back(Map3D->map[idVec[i]].position.y);
+        PMSLAM_Data_msg.MapOut.positions.z.push_back(Map3D->map[idVec[i]].position.z);
       }
     }
   }
