@@ -32,6 +32,7 @@ class rosTop{
 		rosTop(ros::NodeHandle *_n);
 		~rosTop();
 		int rate_;
+		void process();
 	private:
 		//! publisher
 		ros::Publisher map_pub_, pose_pub_;

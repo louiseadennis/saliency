@@ -272,7 +272,7 @@ void ORCore::publishDB()
 			sscrovers_pmslam_common::featureUpdate temp;
 			temp.id = i;
 			temp.x = vs[i].x;
-			temp.x = vs[i].y;
+			temp.y = vs[i].y;
 			if(vs[i].id == 1){
 				vs[i].id = 0;
 				temp.exists = false;

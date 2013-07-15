@@ -99,11 +99,15 @@ void CtrlCore::publishCtrlVector()
 {
   ctrl_vec_msg_.header.stamp.nsec = curr_step_;
 
-  float d2 = curr_pose_msg_.pose.position.x + curr_pose_msg_.pose.position.y;
+  float d2 = curr_pose_msg_.pose.position.x*curr_pose_msg_.pose.position.x + curr_pose_msg_.pose.position.y*curr_pose_msg_.pose.position.y;
   float d = sqrt(d2);
-  float theta = atan(curr_pose_msg_.pose.position.y/curr_pose_msg_.pose.position.x);
-  ctrl_vec_pub_.d = d;
-  ctrl_vec_pub_.theta = theta;
+ROs_INFO("%f,%f",curr_pose_msg_.pose.position.x,curr_pose_msg_.pose.position.y );
+  float theta = 0;
+  if(curr_pose_msg_.pose.position.x *curr_pose_msg_.pose.position.x<0.051){
+	theta = atan(curr_pose_msg_.pose.position.y/curr_pose_msg_.pose.position.x);
+  }
+  ctrl_vec_msg_.d = d;
+  ctrl_vec_msg_.theta = theta;
   ctrl_vec_pub_.publish(ctrl_vec_msg_);
 }
 

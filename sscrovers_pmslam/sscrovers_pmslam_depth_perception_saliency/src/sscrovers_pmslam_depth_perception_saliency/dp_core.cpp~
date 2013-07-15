@@ -76,8 +76,8 @@ sscrovers_pmslam_common::featureUpdate3D DPCore::direct_depth(sscrovers_pmslam_c
 {
 	double u, v, x_coord_3D, y_coord_3D, z_coord_3D;
 	sscrovers_pmslam_common::featureUpdate3D temp;
-	x_coord = ft.x;
-	y_coord = ft.y;
+	double x_coord = ft.x;
+	double y_coord = ft.y;
 
 	u = (double)x_coord/320;//TODO
 	v = (double)y_coord/240;//TODO

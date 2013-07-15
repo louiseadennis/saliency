@@ -275,9 +275,9 @@ void ORCore::publishDB()
 			temp.x = vs[i].y;
 			if(vs[i].id == 1){
 				vs[i].id = 0;
-				temp.new = true;
+				temp.exists = false;
 			}else{
-				temp.new = false;
+				temp.exists = true;
 			}
 			local_msgs_.features.push_back(temp);
 		}

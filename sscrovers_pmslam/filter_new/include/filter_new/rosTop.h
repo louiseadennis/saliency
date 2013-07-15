@@ -7,13 +7,7 @@
 #include "tf/tf.h"
 
 //ROS messages
-#include <sensor_msgs/image_encodings.h>
-#include <nav_msgs/Path.h>
-#include "sscrovers_pmslam_common/SALVector.h"
-#include "sscrovers_pmslam_common/SPoint.h"
-#include "sscrovers_pmslam_common/PairedPoints3D.h"
-#include "sscrovers_pmslam_common/PtPairs.h"
-#include "sscrovers_pmslam_common/DynamicArray.h"
+
 
 #include "sscrovers_pmslam_common/featureUpdateArray.h"
 #include "sscrovers_pmslam_common/featureUpdate.h"
