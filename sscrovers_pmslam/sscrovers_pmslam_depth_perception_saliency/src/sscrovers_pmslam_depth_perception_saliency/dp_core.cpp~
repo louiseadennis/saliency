@@ -83,7 +83,7 @@ sscrovers_pmslam_common::featureUpdate3D DPCore::direct_depth(sscrovers_pmslam_c
 	v = (double)y_coord/240;//TODO
 
 	temp.y = camh/tan(tilt+atan((2*v-1)*tan(vfov/2)));
-	temp.x = y_coord_3D * (2*u - 1) * tan(hfov/2);
+	temp.x = temp.y * (2*u - 1) * tan(hfov/2);
 	temp.z = 0;
 	temp.id = ft.id;
 	temp.exists = ft.exists;

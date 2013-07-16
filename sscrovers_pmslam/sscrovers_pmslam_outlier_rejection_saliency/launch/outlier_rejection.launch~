@@ -1,5 +1,5 @@
 <launch>
-	<node pkg="sscrovers_pmslam_outlier_rejection" type="or_node" name="outlier_rejection" output="screen">
+	<node pkg="sscrovers_pmslam_outlier_rejection_saliency" type="or_node_s" name="outlier_rejection_s" output="screen">
       <!-- frequency rate of node -->
       <param name="rate" value="1.0" />
 

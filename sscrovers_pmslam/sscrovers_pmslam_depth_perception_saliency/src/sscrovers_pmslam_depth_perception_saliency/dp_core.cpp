@@ -43,6 +43,7 @@ void DPCore::process()
   //put here everything that should run with node
   if (step_ >= 0)
   {
+      out.features.clear();
       out.header.stamp.nsec = step_;	
       double _rng = 10;
       int px = 320;

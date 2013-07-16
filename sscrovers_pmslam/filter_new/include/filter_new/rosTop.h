@@ -42,6 +42,8 @@ class rosTop{
 		int step_feat, step_vec; 
 
 		void publish();
+
+		bool checkVec, check3D;
 };
 
 

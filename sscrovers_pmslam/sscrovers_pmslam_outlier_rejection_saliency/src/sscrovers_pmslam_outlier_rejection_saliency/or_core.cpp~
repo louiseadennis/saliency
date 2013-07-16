@@ -265,30 +265,44 @@ void ORCore::filter()
 
 void ORCore::publishDB()
 {
+
+	sscrovers_pmslam_common::featureUpdateArray tempArray;
+	local_msgs_ = tempArray;
  	local_msgs_.header.stamp.nsec = step_;
 	local_msgs_.features.clear();
-	for(int i=0; i<vs.size();i++){
-		if(vs[i].step ==step_){
-			sscrovers_pmslam_common::featureUpdate temp;
-			temp.id = i;
-			temp.x = vs[i].x;
-			temp.y = vs[i].y;
+	vector <sscrovers_pmslam_common::featureUpdate> tempVec;
 
-			if(firstTime < 2){
-				temp.exists = false;
-			}else{
-				if(vs[i].id == 0){
-					vs[i].id = 1;
+	int t=0;
+	if(firstTime > 0){
+		for(int i=0; i<vs.size();i++){
+
+			if(vs[i].step ==step_){
+				t++;
+				sscrovers_pmslam_common::featureUpdate temp;
+				temp.id = i;
+				temp.x = vs[i].x;
+				temp.y = vs[i].y;
+
+				if(firstTime < 2){
 					temp.exists = false;
 				}else{
-					temp.exists = true;
+					if(vs[i].id == 0){
+						vs[i].id = 1;
+						temp.exists = false;
+					}else{
+						temp.exists = true;
+					}
 				}
+				tempVec.push_back(temp);
 			}
-			local_msgs_.features.push_back(temp);
 		}
+ROS_INFO("sizze %lu", local_msgs_.features.size());
+
+		local_msgs_.features = tempVec;
+		db_pub_.publish(local_msgs_);
 	}
-	db_pub_.publish(local_msgs_);
 	firstTime++;
+
 }
 
 //-----------------------------MAIN-------------------------------

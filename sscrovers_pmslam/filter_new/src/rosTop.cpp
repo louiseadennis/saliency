@@ -13,6 +13,9 @@ rosTop::rosTop(ros::NodeHandle *_n){
 
         ctrl_vec_sub_ = _n->subscribe("ctrl_vec", 1, &rosTop::control_vec_callBack, this);
 	local_features_3D_sub_ = _n->subscribe("localFeat3D", 1, &rosTop::local_features_3D_callBack, this);
+
+	checkVec = false;
+	check3D = false;
 }
 
 
@@ -31,12 +34,16 @@ ROS_INFO("%i  ==  %i",step_vec,step_feat);
 }
 
 void rosTop::control_vec_callBack(const sscrovers_pmslam_common::control_vec& msg){
+	ROS_INFO("Recieved control vector - %i", msg.header.stamp.nsec);
 	step_vec  = msg.header.stamp.nsec; 
 	current_ctrlVec = vec(msg.d, msg.theta);
+	ROS_INFO("control prediction");
 	newFilter.predict(current_ctrlVec);
+	checkVec=true;
 }
 
 void rosTop::local_features_3D_callBack(const sscrovers_pmslam_common::featureUpdate3DArray& msg){
+	ROS_INFO("Recieved features update - %i", msg.header.stamp.nsec);
 	step_feat  = msg.header.stamp.nsec; 
 	features.clear();
 	for(int i=0; i<msg.features.size(); i++){
@@ -67,6 +74,7 @@ int main(int argc, char **argv)
 
 	while (n.ok())
 	{
+ROS_INFO("waiting");
 	rt->process();
 	ros::spinOnce();
 	r.sleep();
