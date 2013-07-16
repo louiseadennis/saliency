@@ -175,9 +175,9 @@ void ORCore::filter()
 			sp.width = NVec.atW(p);
 			sp.id = 0;
 
-			vs.push_back(sp);
+			//vs.push_back(sp);
 
-			vs.push_back(sp);
+			//vs.push_back(sp);
 			pp.push_back(p);
 		}
 		
@@ -296,9 +296,10 @@ void ORCore::publishDB()
 				tempVec.push_back(temp);
 			}
 		}
-ROS_INFO("sizze %lu", local_msgs_.features.size());
+
 
 		local_msgs_.features = tempVec;
+ROS_INFO("sizze %lu", local_msgs_.features.size());
 		db_pub_.publish(local_msgs_);
 	}
 	firstTime++;

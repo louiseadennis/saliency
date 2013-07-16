@@ -176,8 +176,7 @@ void ORCore::filter()
 			sp.id = 0;
 
 			vs.push_back(sp);
-
-			vs.push_back(sp);
+			
 			pp.push_back(p);
 		}
 		

@@ -1,5 +1,5 @@
 <launch>
-	<node pkg="filter_new" type="filter_new_node" name="filter_node">
+	<node pkg="filter_new" type="filter_new_node" name="filter_node" output="screen">
     	
 
     </node>
