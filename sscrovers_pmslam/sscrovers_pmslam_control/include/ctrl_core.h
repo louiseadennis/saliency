@@ -106,6 +106,8 @@ private:
   double z_noise_;
   double yaw_noise_;
 
+  float prevX, prevY;
+
   //! camera pitch angle
   //double camera_pitch_;
   //! camera z position

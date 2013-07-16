@@ -40,7 +40,8 @@ CtrlCore::CtrlCore(ros::NodeHandle *_n) :
   odom_callback_inv = false;
 
   curr_step_ = 0;
-
+  prevX = 0;
+  prevY = 0;
 }
 
 CtrlCore::~CtrlCore()
@@ -98,16 +99,25 @@ void CtrlCore::publishImage()
 void CtrlCore::publishCtrlVector()
 {
   ctrl_vec_msg_.header.stamp.nsec = curr_step_;
-
-  float d2 = curr_pose_msg_.pose.position.x*curr_pose_msg_.pose.position.x + curr_pose_msg_.pose.position.y*curr_pose_msg_.pose.position.y;
+  float tempX = curr_pose_msg_.pose.position.x - prevX;
+  float tempY = curr_pose_msg_.pose.position.y - prevY;
+  float d2 = tempX*tempX + tempY*tempY;
   float d = sqrt(d2);
-ROs_INFO("%f,%f",curr_pose_msg_.pose.position.x,curr_pose_msg_.pose.position.y );
+
   float theta = 0;
-  if(curr_pose_msg_.pose.position.x *curr_pose_msg_.pose.position.x<0.051){
-	theta = atan(curr_pose_msg_.pose.position.y/curr_pose_msg_.pose.position.x);
+  if(tempX*tempX>0.051){
+ROS_INFO("xy(%f,%f)",tempX,tempY);
+	theta = atan(tempY/tempX);
   }
+
+
+
   ctrl_vec_msg_.d = d;
   ctrl_vec_msg_.theta = theta;
+ROS_INFO("(%f,%f)",d,theta);
+
+  prevX = curr_pose_msg_.pose.position.x;
+  prevY = curr_pose_msg_.pose.position.y;
   ctrl_vec_pub_.publish(ctrl_vec_msg_);
 }
 

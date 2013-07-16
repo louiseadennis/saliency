@@ -22,7 +22,7 @@
 #include <geometry_msgs/PoseStamped.h>
 #include <nav_msgs/Odometry.h>
 #include <nav_msgs/Path.h>
-#include  <sscrovers_pmslam_common/control_vec.h>
+#include  "sscrovers_pmslam_common/control_vec.h"
 
 namespace enc = sensor_msgs::image_encodings;
 
