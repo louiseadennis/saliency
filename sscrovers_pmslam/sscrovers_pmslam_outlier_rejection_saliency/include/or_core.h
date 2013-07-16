@@ -113,6 +113,8 @@ private:
   //! init data value received flag
   bool data_completed_f_;
 
+  int firstTime;
+
   //! Object of functional class
   FilterKeypointsOR* filter_keypoints_ptr_;
 

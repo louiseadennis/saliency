@@ -19,6 +19,7 @@ rosTop::rosTop(ros::NodeHandle *_n){
 rosTop::~rosTop(){}
 
 void rosTop::process(){
+ROS_INFO("%i  ==  %i");
 	if(step_vec == step_feat){
 	 	newFilter.update(features);
 	    	newFilter.augment(features);
@@ -47,7 +48,7 @@ void rosTop::local_features_3D_callBack(const sscrovers_pmslam_common::featureUp
 void rosTop::publish(){
 	cout << newFilter.getRoverState();
 }
-/*
+
 //-----------------------------MAIN------------------------------
 int main(int argc, char **argv)
 {
@@ -75,4 +76,4 @@ int main(int argc, char **argv)
 	//ros::spin();
 
 	return 0;
-} // end main()*/
+} // end main()

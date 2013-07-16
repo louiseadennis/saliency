@@ -19,6 +19,7 @@ rosTop::rosTop(ros::NodeHandle *_n){
 rosTop::~rosTop(){}
 
 void rosTop::process(){
+ROS_INFO("%i  ==  %i",step_vec,step_feat);
 	if(step_vec == step_feat){
 	 	newFilter.update(features);
 	    	newFilter.augment(features);

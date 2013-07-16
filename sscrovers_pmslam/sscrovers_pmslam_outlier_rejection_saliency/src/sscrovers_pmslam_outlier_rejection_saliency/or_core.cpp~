@@ -44,6 +44,8 @@ ORCore::ORCore(ros::NodeHandle *_n)
   data_completed_f_ = false;
   latest =false;	
   prev=false;
+
+  firstTime = 0;
 }
 
 ORCore::~ORCore()
@@ -194,12 +196,11 @@ void ORCore::filter()
 		//for(int l=0;l<outP.size();l++){
 		//	ROS_INFO("%i, %i, frame= %i, d= %f",outP.pairs[l].i, outP.pairs[l].j, outP.pairs[l].frame, outP.pairs[l].d);
 		//}
-
 		NMinusTwoVec = NMinusOneVec;
 		NMinusOneVec = NVec;
 		pp.clear();
 		prev = latest;
-		ros::param::get("filter",latest);
+		//ros::param::get("filter",latest);
 		//ROS_INFO("Conversion Started");
 		for(int e=0;e<NVec.size();e++ ){
 			ptpair plast = outP.at(e);
@@ -210,10 +211,9 @@ void ORCore::filter()
 				vs[object].flag = 1;
 				vs[object].step = step_;
 				vs[object].n += 1;
-				
-				if(latest){
+				//if(latest){
 					vs[object].id = 1;
-				}
+				//}
 				vs[object].x = NVec.atX(e);
 				vs[object].y = NVec.atY(e);
 				vs[object].height = NVec.atH(e);
@@ -227,9 +227,9 @@ void ORCore::filter()
 				vs[object].flag = 2;
 				vs[object].step = step_;
 				vs[object].n += 1;
-				if(latest){
+				//if(latest){
 					vs[object].id = 1;
-				}
+				//}
 				vs[object].x = NVec.atX(e);
 				vs[object].y = NVec.atY(e);
 				vs[object].height = NVec.atH(e);
@@ -272,17 +272,23 @@ void ORCore::publishDB()
 			sscrovers_pmslam_common::featureUpdate temp;
 			temp.id = i;
 			temp.x = vs[i].x;
-			temp.x = vs[i].y;
-			if(vs[i].id == 1){
-				vs[i].id = 0;
+			temp.y = vs[i].y;
+
+			if(firstTime < 2){
 				temp.exists = false;
 			}else{
-				temp.exists = true;
+				if(vs[i].id == 0){
+					vs[i].id = 1;
+					temp.exists = false;
+				}else{
+					temp.exists = true;
+				}
 			}
 			local_msgs_.features.push_back(temp);
 		}
 	}
 	db_pub_.publish(local_msgs_);
+	firstTime++;
 }
 
 //-----------------------------MAIN-------------------------------

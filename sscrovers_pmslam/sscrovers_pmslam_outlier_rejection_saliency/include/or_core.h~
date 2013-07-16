@@ -113,14 +113,11 @@ private:
   //! init data value received flag
   bool data_completed_f_;
 
+  bool firstTime;
+
   //! Object of functional class
   FilterKeypointsOR* filter_keypoints_ptr_;
 
-  //! send new surf features to data base
-  void sendToSurfDataBase();
-
-  //! Function for indexes to pair points with data base
-  void publishPtPairs();
 
   //! Callback function for features subscription.
   void featuresCallback(const geometry_msgs::PoseArray& msg);
