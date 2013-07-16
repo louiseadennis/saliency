@@ -105,16 +105,13 @@ void CtrlCore::publishCtrlVector()
   float d = sqrt(d2);
 
   float theta = 0;
-  if(tempX*tempX>0.051){
-ROS_INFO("xy(%f,%f)",tempX,tempY);
-	theta = atan(tempY/tempX);
-  }
+
+  theta = atan2(tempX,tempY);
 
 
 
   ctrl_vec_msg_.d = d;
   ctrl_vec_msg_.theta = theta;
-ROS_INFO("(%f,%f)",d,theta);
 
   prevX = curr_pose_msg_.pose.position.x;
   prevY = curr_pose_msg_.pose.position.y;

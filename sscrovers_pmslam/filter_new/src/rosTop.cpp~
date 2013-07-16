@@ -3,21 +3,26 @@
 #include <sstream>
 #include <fstream>
 #include <math.h>
+#include <visualization_msgs/Marker.h>
+#include <visualization_msgs/MarkerArray.h>
 
 using namespace std;
 using namespace arma;
 
 rosTop::rosTop(ros::NodeHandle *_n){
-ROS_INFO("Filter start");
+
 	ros::NodeHandle private_node_handle("~");
 	private_node_handle.param("rate", rate_, int(10));
 
         ctrl_vec_sub_ = _n->subscribe("ctrl_vec", 1, &rosTop::control_vec_callBack, this);
 	local_features_3D_sub_ = _n->subscribe("localFeat3D", 1, &rosTop::local_features_3D_callBack, this);
 
+	marker_pub = _n->advertise<visualization_msgs::Marker>("rover_state", 1);
+	marker_array_pub = _n->advertise<visualization_msgs::MarkerArray>("rocks", 1);
+
 	checkVec = false;
 	check3D = false;
-ROS_INFO("Filter start");
+	highID = 0;
 }
 
 
@@ -27,7 +32,7 @@ void rosTop::process(){
 	if((checkVec) && (check3D)){
 		checkVec = false;
 		check3D = false;
-ROS_INFO("%i  ==  %i",step_vec,step_feat);
+//ROS_INFO("%i  ==  %i",step_vec,step_feat);
 		if(step_vec == step_feat){
 ROS_INFO("update");
 		 	newFilter.update(features);
@@ -60,6 +65,11 @@ void rosTop::local_features_3D_callBack(const sscrovers_pmslam_common::featureUp
 	features.clear();
 	for(int i=0; i<msg.features.size(); i++){
 		features.push_back(features3D(msg.features[i].id,msg.features[i].x,msg.features[i].y,msg.features[i].z,msg.features[i].exists));
+		if(msg.features[i].id > highID){
+			highID = msg.features[i].id;
+		}
+
+		
 	}
 	check3D = true;
 	process();
@@ -67,7 +77,105 @@ void rosTop::local_features_3D_callBack(const sscrovers_pmslam_common::featureUp
 
 
 void rosTop::publish(){
-	cout << " state prediction " << step_feat << endl << newFilter.getRoverState();
+	vec out = newFilter.getRoverState();
+	cout << " state prediction " << step_feat << endl << out;
+
+
+	/******  Robot placer Rviz****************/
+  	uint32_t shape = visualization_msgs::Marker::CUBE;
+	visualization_msgs::Marker marker;
+	// Set the frame ID and timestamp.  See the TF tutorials for information on these.
+	marker.header.frame_id = "/map";
+	marker.header.stamp = ros::Time::now();
+
+	// Set the namespace and id for this marker.  This serves to create a unique ID
+	// Any marker sent with the same namespace and id will overwrite the old one
+	marker.ns = "basic_shapes";
+	marker.id = 0;
+
+	// Set the marker type.  Initially this is CUBE, and cycles between that and SPHERE, ARROW, and CYLINDER
+	marker.type = shape;
+
+	// Set the marker action.  Options are ADD and DELETE
+	marker.action = visualization_msgs::Marker::ADD;
+
+	marker.pose.position.x = out(0);
+	marker.pose.position.y = out(1);
+	marker.pose.position.z = out(2);
+	marker.pose.orientation.x = 0.0;
+	marker.pose.orientation.y = 0.0;
+	marker.pose.orientation.z = 0.0;
+	marker.pose.orientation.w = 1.0;
+
+	// Set the scale of the marker -- 1x1x1 here means 1m on a side
+	marker.scale.x = .10;
+	marker.scale.y = .10;
+	marker.scale.z = .10;
+
+	// Set the color -- be sure to set alpha to something non-zero!
+	marker.color.r = 0.0f;
+	marker.color.g = 1.0f;
+	marker.color.b = 0.0f;
+	marker.color.a = 1.0;
+
+	marker.lifetime = ros::Duration();
+
+	// Publish the marker
+	marker_pub.publish(marker);
+
+
+
+	/****** rock placer Rviz****************/
+	visualization_msgs::MarkerArray markerArray;
+	for(int y=0;y<=highID; y++){
+
+		visualization_msgs::Marker marker1;
+		// Set the frame ID and timestamp.  See the TF tutorials for information on these.
+		marker1.header.frame_id = "/map";
+		marker1.header.stamp = ros::Time::now();
+
+		// Set the namespace and id for this marker.  This serves to create a unique ID
+		// Any marker sent with the same namespace and id will overwrite the old one
+		marker1.ns = "basic_shapes";
+		marker1.id = 0;
+
+		// Set the marker type.  Initially this is CUBE, and cycles between that and SPHERE, ARROW, and CYLINDER
+		marker1.type = shape;
+
+		// Set the marker action.  Options are ADD and DELETE
+		marker1.action = visualization_msgs::Marker::ADD;
+		
+		cout << "rocks"<< endl;
+		mat feat;
+		newFilter.observeModel(y, &feat);
+		cout << "( "<<feat(0) <<" , "<<feat(1)<<" )"<<endl;
+
+		marker1.pose.position.x = out(0) + feat(0)*cos(feat(1));
+		marker1.pose.position.y = out(1) + feat(0)*sin(feat(1));
+		marker1.pose.position.z = 0;
+		marker1.pose.orientation.x = 0.0;
+		marker1.pose.orientation.y = 0.0;
+		marker1.pose.orientation.z = 0.0;
+		marker1.pose.orientation.w = 1.0;
+
+
+		marker1.color.r = 1.0f;
+		marker1.color.g = 0.0f;
+		marker1.color.b = 0.0f;
+		marker1.color.a = 1.0;
+
+		// Set the scale of the marker -- 1x1x1 here means 1m on a side
+		marker1.scale.x = .10;
+		marker1.scale.y = .10;
+		marker1.scale.z = .10;
+		marker1.lifetime = ros::Duration();
+
+		markerArray.markers.push_back(marker1);
+
+	}
+	marker_array_pub.publish(markerArray);
+
+
 }
 
 //-----------------------------MAIN------------------------------

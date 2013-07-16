@@ -1,4 +1,4 @@
-#include </usr/lib/armadillo>
+#include <armadillo>
 #include <vector>
 #include "features3D.h"
 

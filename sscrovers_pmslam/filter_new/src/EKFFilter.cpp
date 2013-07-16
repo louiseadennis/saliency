@@ -1,4 +1,5 @@
 #include "filter_new/EKFFilter.h"
+#include "ros/ros.h"
 
 EKFFilter::EKFFilter()
 {
@@ -29,7 +30,6 @@ void EKFFilter::predict(vec controlData)
 	m_state(0) = m_state(0) + controlData(0)*cos(m_state(2));
 	m_state(1) = m_state(1) + controlData(0)*sin(m_state(2));
 	m_state(2) = m_state(2) + controlData(1);
-
 }
 
 void EKFFilter::updateHeading(double heading, double headingNoise)
@@ -38,20 +38,27 @@ void EKFFilter::updateHeading(double heading, double headingNoise)
 
 void EKFFilter::update(vector<features3D> features)
 {
+
     int featureCount = 0;
 	for(int i=0; i<(int)features.size(); i++)
 		if(features[i].getExists()) featureCount++;	
     mat H = zeros<mat>(m_state.n_rows, m_state.n_rows);
     vec difference = zeros<vec>(m_state.n_rows);
     mat measurementCovariance = zeros<mat>(m_state.n_rows, m_state.n_rows);
+
     for(int i=0; i<(int)features.size(); i++)
     {
+
         if(features[i].getExists())
         {
+
             int featureIndex = 2*features[i].getIndex() - 2;
             vec predictedFeatures;
+
             H(span(featureIndex, featureIndex+1), span::all) = observeModel(featureIndex, &predictedFeatures);
+
             difference(featureIndex) = features[i].getRange() - predictedFeatures(0);
+
             difference(featureIndex+1) = features[i].getBearing() - predictedFeatures(1);
             measurementCovariance(span(featureIndex, featureIndex+1), span(featureIndex, featureIndex+1)) = m_measurementNoise;
         }
@@ -93,6 +100,8 @@ void EKFFilter::augment(vector<features3D> features)
 
 mat EKFFilter::observeModel(int featureIndex, mat* predictedFeature)
 {
+
+
     int stateSize = m_state.n_rows;
     featureIndex = featureIndex+3; //Rover state size = 3
     mat measurementJacobian = zeros<mat>(2, stateSize);

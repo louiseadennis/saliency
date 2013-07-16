@@ -287,9 +287,9 @@ void ORCore::publishDB()
 				}else{
 					if(vs[i].id == 0){
 						vs[i].id = 1;
-						temp.exists = false;
-					}else{
 						temp.exists = true;
+					}else{
+						temp.exists = false;
 					}
 				}
 				tempVec.push_back(temp);
@@ -298,7 +298,6 @@ void ORCore::publishDB()
 
 
 		local_msgs_.features = tempVec;
-ROS_INFO("sizze %lu", local_msgs_.features.size());
 		db_pub_.publish(local_msgs_);
 	}
 	firstTime++;

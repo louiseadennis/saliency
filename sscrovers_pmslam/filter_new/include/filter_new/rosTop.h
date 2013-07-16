@@ -44,6 +44,9 @@ class rosTop{
 		void publish();
 
 		bool checkVec, check3D;
+
+		ros::Publisher marker_pub, marker_array_pub ;
+		int highID;
 };
 
 

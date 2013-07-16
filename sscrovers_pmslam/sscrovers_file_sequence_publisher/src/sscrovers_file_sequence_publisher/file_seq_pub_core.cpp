@@ -204,6 +204,11 @@ void FileSeqPubCore::publishOdom()
   //TODO remove dependency on step
   //odom_.header.stamp = ros::Time::now();
   odom_msg_.header.stamp.nsec = step_;
+  odom_msg_.header.frame_id = "/map";
+  float tt = odom_msg_.pose.pose.position.x;
+  odom_msg_.pose.pose.position.x = odom_msg_.pose.pose.position.y;
+  odom_msg_.pose.pose.position.y = tt;
+  odom_msg_.pose.pose.orientation.x = 1;
   odom_pub_.publish(odom_msg_);
 }
 

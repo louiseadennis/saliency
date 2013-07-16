@@ -105,9 +105,8 @@ void CtrlCore::publishCtrlVector()
   float d = sqrt(d2);
 
   float theta = 0;
-  if(tempX*tempX>0.051){
-	theta = atan(tempY/tempX);
-  }
+
+  theta = atan2(tempY,tempX);
 
 
 

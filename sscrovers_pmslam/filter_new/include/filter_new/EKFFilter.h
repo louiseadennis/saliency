@@ -13,13 +13,13 @@ class EKFFilter //:SLAMFilter
 		mat m_controlNoise;
 		mat m_measurementNoise;
 
-		mat observeModel(int featureIndex, mat* predictedFeature);
+
         void choleskyUpdate(vec difference, mat measurementCovariance, mat measurementJacobian);
 
 	public:
 		EKFFilter();
 		~EKFFilter();
-
+		mat observeModel(int featureIndex, mat* predictedFeature);
 		vec getState() { return m_state; }
 		vec getRoverState() { return m_state(span(0,2)); }
 
