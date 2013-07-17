@@ -77,9 +77,9 @@ void rosTop::local_features_3D_callBack(const sscrovers_pmslam_common::featureUp
 
 
 void rosTop::publish(){
-	vec out = newFilter.getRoverState();
-	cout << " state prediction " << step_feat << endl << out;
-
+	vec out = newFilter.getState();
+	//cout << " state prediction " << step_feat << endl << out;
+	visualization_msgs::MarkerArray markerArray;
 
 	/******  Robot placer Rviz****************/
   	uint32_t shape = visualization_msgs::Marker::CUBE;
@@ -94,17 +94,19 @@ void rosTop::publish(){
 	marker.id = 0;
 
 	// Set the marker type.  Initially this is CUBE, and cycles between that and SPHERE, ARROW, and CYLINDER
-	marker.type = shape;
+	marker.type = visualization_msgs::Marker::MESH_RESOURCE;
+
+	marker.mesh_resource = "package://pr2_description/meshes/base_v0/base.dae";
 
 	// Set the marker action.  Options are ADD and DELETE
 	marker.action = visualization_msgs::Marker::ADD;
 
 	marker.pose.position.x = out(0);
 	marker.pose.position.y = out(1);
-	marker.pose.position.z = out(2);
+	marker.pose.position.z = 0.0;
 	marker.pose.orientation.x = 0.0;
 	marker.pose.orientation.y = 0.0;
-	marker.pose.orientation.z = 0.0;
+	marker.pose.orientation.z = out(2);
 	marker.pose.orientation.w = 1.0;
 
 	// Set the scale of the marker -- 1x1x1 here means 1m on a side
@@ -121,13 +123,12 @@ void rosTop::publish(){
 	marker.lifetime = ros::Duration();
 
 	// Publish the marker
-	marker_pub.publish(marker);
-
-
+	//marker_pub.publish(marker);
+	markerArray.markers.push_back(marker);
 
 	/****** rock placer Rviz****************
-	visualization_msgs::MarkerArray markerArray;
-	for(int y=0;y<=highID; y++){
+
+	for(int y=3;y<=out.size()-2; y+=2){
 
 		visualization_msgs::Marker marker1;
 		// Set the frame ID and timestamp.  See the TF tutorials for information on these.
@@ -144,14 +145,10 @@ void rosTop::publish(){
 
 		// Set the marker action.  Options are ADD and DELETE
 		marker1.action = visualization_msgs::Marker::ADD;
-		
-		cout << "rocks"<< endl;
-		mat feat;
-		newFilter.observeModel(y, &feat);
-		cout << "( "<<feat(0) <<" , "<<feat(1)<<" )"<<endl;
+	
 
-		marker1.pose.position.x = out(0) + feat(0)*cos(feat(1));
-		marker1.pose.position.y = out(1) + feat(0)*sin(feat(1));
+		marker1.pose.position.x = out(y);
+		marker1.pose.position.y = out(y+1);
 		marker1.pose.position.z = 0;
 		marker1.pose.orientation.x = 0.0;
 		marker1.pose.orientation.y = 0.0;
@@ -172,7 +169,7 @@ void rosTop::publish(){
 
 		markerArray.markers.push_back(marker1);
 
-	}
+	}*/
 	marker_array_pub.publish(markerArray);
 	/**********************************************************/
 

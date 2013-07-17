@@ -114,6 +114,7 @@ void saliencyMapHou::imageCB(const sensor_msgs::ImageConstPtr& msg_ptr)
 	heatmap_pub_.publish(heatmap_);
 	poseArray.header =   cv_ptr->header;
 	features_pub_.publish(poseArray);
+	fm_.header = cv_ptr->header;
 	featureMap_pub_.publish(fm_);
 
 	return;
