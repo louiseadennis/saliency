@@ -53,7 +53,6 @@ void saliencyMapHou::imageCB(const sensor_msgs::ImageConstPtr& msg_ptr)
 	//	CONVERT FROM CV::MAT TO ROSIMAGE FOR PUBLISHING
 	saliencymap_.convertTo(saliencymap_, CV_8UC1,255);
 
-	//affan's and guy's addition
 
 	threshold(saliencymap_, saliencymap_, 0, 255, cv::THRESH_TOZERO|cv::THRESH_OTSU);
 
@@ -76,8 +75,8 @@ void saliencyMapHou::imageCB(const sensor_msgs::ImageConstPtr& msg_ptr)
 		}
 		if(points.size() > 0){
 			cv::Rect brect = cv::boundingRect(cv::Mat(points).reshape(2));
-			//cv::Rect brect1(brect.x-,brect.y-2,brect.width+2,brect.height+2);
-			cropped = clonedImage2(brect);
+			//cv::Rect brect1(brect.x-2,brect.y-2,brect.width+2,brect.height+2);
+			cropped = clonedImage2(brect1);
 			
 
 			geometry_msgs::Pose poser;
@@ -114,6 +113,7 @@ void saliencyMapHou::imageCB(const sensor_msgs::ImageConstPtr& msg_ptr)
 	heatmap_pub_.publish(heatmap_);
 	poseArray.header =   cv_ptr->header;
 	features_pub_.publish(poseArray);
+	fm_.header = cv_ptr->header;
 	featureMap_pub_.publish(fm_);
 
 	return;

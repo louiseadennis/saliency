@@ -53,7 +53,6 @@ void saliencyMapHou::imageCB(const sensor_msgs::ImageConstPtr& msg_ptr)
 	//	CONVERT FROM CV::MAT TO ROSIMAGE FOR PUBLISHING
 	saliencymap_.convertTo(saliencymap_, CV_8UC1,255);
 
-	//affan's and guy's addition
 
 	threshold(saliencymap_, saliencymap_, 0, 255, cv::THRESH_TOZERO|cv::THRESH_OTSU);
 
@@ -76,7 +75,7 @@ void saliencyMapHou::imageCB(const sensor_msgs::ImageConstPtr& msg_ptr)
 		}
 		if(points.size() > 0){
 			cv::Rect brect = cv::boundingRect(cv::Mat(points).reshape(2));
-			//cv::Rect brect1(brect.x-,brect.y-2,brect.width+2,brect.height+2);
+			//cv::Rect brect1(brect.x-2,brect.y-2,brect.width+2,brect.height+2);
 			cropped = clonedImage2(brect);
 			
 

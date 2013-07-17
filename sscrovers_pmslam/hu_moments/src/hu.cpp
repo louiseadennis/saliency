@@ -5,6 +5,7 @@
 #include <math.h>
 
 hu::hu(ros::NodeHandle *_n){
+	first =true;
 	ros::NodeHandle private_node_handle("~");
 	private_node_handle.param("rate", rate_, int(10));
 
@@ -19,67 +20,161 @@ hu::hu(ros::NodeHandle *_n){
 hu::~hu(){};
 
 void hu::featureMapCallback(const sscrovers_pmslam_common::featureMap& msg){
-	step_ = msg.header.stamp.nsec;
-	sscrovers_pmslam_common::featureUpdateArray tempArray;
-	tempArray.header = msg.header;
-	vector <sscrovers_pmslam_common::featureUpdate> tempVec;
-	for (int i=0; i<msg.imgs.size(); i++){
-		cv_bridge::CvImagePtr cv_ptr;
-		Mat image_;
-		try
-		{
+	if(first){
+		first = false;
+		prev = msg.points;
+		for (int i=0; i<msg.imgs.size(); i++){
+			cv_bridge::CvImagePtr cv_ptr;
+			Mat image_;
+			try
+			{
 			
-			cv_ptr = cv_bridge::toCvCopy(msg.imgs[i], enc::BGR8);
-		}
-		catch (cv_bridge::Exception& e)
-		{
-			ROS_ERROR("cv_bridge exception: %s", e.what());
-		}
-		cv_ptr->image.copyTo(image_);
-
-		vector<vector<Point> > contours;
-		findContours(image_, contours, CV_RETR_LIST, CV_CHAIN_APPROX_NONE);
-		double *huArray;
-		Moments mm = moments(contours,true);
-		HuMoments( mm , huArray);
-		 
-		moment newMoment = moment(huArray[0], huArray[1], huArray[2], huArray[3], huArray[4], huArray[5], huArray[6]);
-		//matcher
-		bool testIn = false;
-		int intIn = -1;
-		for (int j=0; j<database.size(); j++){
-			testIn = database.at(j).inBundle(newMoment);
-			if(testIn){
-				intIn = j;
-				break;
+				cv_ptr = cv_bridge::toCvCopy(msg.imgs[i], enc::MONO8);
 			}
-		}
-		sscrovers_pmslam_common::featureUpdate temp;
-		if (testIn){
-			database[intIn].add(newMoment);
+			catch (cv_bridge::Exception& e)
+			{
+				ROS_ERROR("cv_bridge exception: %s", e.what());
+			}
+			cv_ptr->image.copyTo(image_);
 
-			//id = intIn & exists = false
-			temp.id = intIn;
-			temp.exists = false;
+			vector<vector<Point> > contours;
 
-			temp.x = msg.points[i].x;
-			temp.y = msg.points[i].y;
-
-		}else{
-			database.push_back(moment_bundle(newMoment));
-
-			// id = database.size() & exists =true
-			temp.id = database.size();
-			temp.exists = true;
-
-			temp.x = msg.points[i].x;
-			temp.y = msg.points[i].y;
-		}
-		tempVec.push_back(temp);
-	}
+			cv::findContours(image_, contours, CV_RETR_LIST, CV_CHAIN_APPROX_NONE);
 	
-	tempArray.features = tempVec;
-	db_pub_.publish(tempArray);
+			 
+			double huArray[7];
+
+			Moments mm = moments(contours[0],true);
+
+			HuMoments( mm , huArray);
+
+			moment newMoment = moment(huArray[0], huArray[1], huArray[2], huArray[3], huArray[4], huArray[5], huArray[6]);
+
+			prevM.push_back(newMoment);
+		}
+
+
+
+
+
+	}else{
+		now = msg.points;
+		step_ = msg.header.stamp.nsec;
+		sscrovers_pmslam_common::featureUpdateArray tempArray;
+		tempArray.header = msg.header;
+		vector <sscrovers_pmslam_common::featureUpdate> tempVec;
+
+		/****** Niave pt pairs ********/
+		std::vector<int> ptpairs;
+
+		for (int q=0; q<prev.size();q++){
+			float dist = 10000;
+			int pair =-1;
+			for (int w=0; w<now.size();w++){
+				float x1 = prev.at(q).x;
+				float y1 = prev.at(q).y;
+				float x2 = now.at(w).x;
+				float y2 = now.at(w).y;
+				float testDist = (x2-x1)*(x2-x1)+(y2-y1)*(y2-y1);
+				if(testDist<dist){
+					dist=testDist;
+					pair=w;
+				}
+			}
+			ptpairs.push_back(pair);
+		}
+		
+
+		/************calculate latest moments*******/
+
+
+
+		for (int i=0; i<msg.imgs.size(); i++){
+			cv_bridge::CvImagePtr cv_ptr;
+			Mat image_;
+			try
+			{
+			
+				cv_ptr = cv_bridge::toCvCopy(msg.imgs[i], enc::MONO8);
+			}
+			catch (cv_bridge::Exception& e)
+			{
+				ROS_ERROR("cv_bridge exception: %s", e.what());
+			}
+			cv_ptr->image.copyTo(image_);
+
+			vector<vector<Point> > contours;
+
+
+
+			findContours(image_, contours, CV_RETR_LIST, CV_CHAIN_APPROX_NONE);
+			double huArray[7];
+			Moments mm = moments(contours[0],true);
+			HuMoments( mm , huArray);
+//ROS_INFO("(%lf , %lf , %lf , %lf , %lf , %lf , %lf )", huArray[0], huArray[1], huArray[2], huArray[3], huArray[4], huArray[5], huArray[6]);			 
+			moment newMoment = moment(huArray[0], huArray[1], huArray[2], huArray[3], huArray[4], huArray[5], huArray[6]);
+			nowM.push_back(newMoment);
+		}
+
+
+		/*******Calculate niave average*******/	
+		double sum;
+		for(int e=0; e<prevM.size();e++){
+			double measure = prevM.at(e).similarity(nowM.at(ptpairs.at(e)));
+			//ROS_INFO("prev (%lf , %lf , %lf , %lf , %lf , %lf , %lf )", prevM.at(e).h0,prevM.at(e).h1,prevM.at(e).h2,prevM.at(e).h3,prevM.at(e).h4,prevM.at(e).h5,prevM.at(e).h6);
+			//ROS_INFO("now (%lf , %lf , %lf , %lf , %lf , %lf , %lf )", nowM.at(ptpairs.at(e)).h0, nowM.at(ptpairs.at(e)).h1, nowM.at(ptpairs.at(e)).h2, nowM.at(ptpairs.at(e)).h3, nowM.at(ptpairs.at(e)).h4, nowM.at(ptpairs.at(e)).h5, nowM.at(ptpairs.at(e)).h6);
+			//ROS_INFO("similar %lf", measure);
+			sum += measure;
+			
+		}
+		double average = sum/prevM.size();
+			
+		/*************************/
+
+		for (int i=0; i<msg.imgs.size(); i++){
+ 
+			moment newMoment = nowM.at(i);
+			//matcher
+			bool testIn = false;
+			int intIn = -1;
+			for (int j=0; j<database.size(); j++){
+				testIn = database.at(j).inBundle(newMoment);
+				if(testIn){
+					intIn = j;
+					break;
+				}
+			}
+			sscrovers_pmslam_common::featureUpdate temp;
+			if (testIn){
+				database[intIn].add(newMoment);
+
+				//id = intIn & exists = false
+				temp.id = intIn;
+				temp.exists = false;
+
+				temp.x = msg.points[i].x;
+				temp.y = msg.points[i].y;
+
+			}else{
+				database.push_back(moment_bundle(newMoment));
+
+				// id = database.size() & exists =true
+				temp.id = database.size();
+				temp.exists = true;
+
+				temp.x = msg.points[i].x;
+				temp.y = msg.points[i].y;
+			}
+			tempVec.push_back(temp);
+		}
+	
+		tempArray.features = tempVec;
+		db_pub_.publish(tempArray);
+		prev = now;
+		prevM = nowM;
+		now.clear();
+		nowM.clear();
+	}
 };
 
 
@@ -97,30 +192,54 @@ moment::moment(double ah0,double ah1,double ah2,double ah3,double ah4,double ah5
 };
 
 
+template <typename T> int sgn(T val) {
+    return (T(0) < val) - (val < T(0));
+}
+
 double moment::similarity(moment h){
 
-	double ma0 = (h0/abs(h0)) *  log10(h0);
-	double mb0 = (h.h0/abs(h.h0)) *  log10(h.h0);
+	double ma0 = sgn(h0) *  log(h0);
+	double mb0 = sgn(h.h0) *  log(h.h0);
+	double m0 = std::abs(ma0  - mb0);
 
-	double ma1 = (h1/abs(h1)) *  log10(h1);
-	double mb1 = (h.h1/abs(h.h1)) *  log10(h.h1);
+	double ma1 = sgn(h1) *  log(h1);
+	double mb1 = sgn(h.h1) *  log(h.h1);
+	double m1 = std::abs(ma1  - mb1);
 
-	double ma2 = (h2/abs(h2)) *  log10(h2);
-	double mb2 = (h.h2/abs(h.h2)) *  log10(h.h2);
+	double ma2 = sgn(h2) *  log(h2);
+	double mb2 = sgn(h.h2) *  log(h.h2);
+	double m2 = std::abs(ma2  - mb2);
 
-	double ma3 = (h3/abs(h3)) *  log10(h3);
-	double mb3 = (h.h3/abs(h.h3)) *  log10(h.h3);
+	double m3=0;
+	if(h3 ==0 || h.h3==0){
+			double ma3 = sgn(h3) *  log(h3);
+			double mb3 = sgn(h.h3) *  log(h.h3);
+			m3 = std::abs(ma3  - mb3);
+	}
 
-	double ma4 = (h4/abs(h4)) *  log10(h4);
-	double mb4 = (h.h4/abs(h.h4)) *  log10(h.h4);
+	double m4=0;
+	if(h4 ==0 || h.h4==0){
+			double ma4 = sgn(h4) *  log(h4);
+			double mb4 = sgn(h.h4) *  log(h.h4);
+			m4 = std::abs(ma4  - mb4);
+	}
 
-	double ma5 = (h5/abs(h5)) *  log10(h5);
-	double mb5 = (h.h5/abs(h.h5)) *  log10(h.h5);
+	double m5=0;
+	if(h5 ==0 || h.h5==0){
+			double ma5 = sgn(h5) *  log(h5);
+			double mb5 = sgn(h.h5) *  log(h.h5);
+			m5 = std::abs(ma5  - mb5);
+	}
 
-	double ma6 = (h6/abs(h6)) *  log10(h6);
-	double mb6 = (h.h6/abs(h.h6)) *  log10(h.h6);
-	
-	return abs(ma0  - mb0) + abs(ma1  - mb1) + abs(ma2  - mb2) + abs(ma3  - mb3) + abs(ma4  - mb4) + abs(ma5  - mb5) + abs(ma6  - mb6); 
+	double m6=0;
+	if(h6==0 || h.h6==0){
+			double ma6 = sgn(h6) *  log(h6);
+			double mb6 = sgn(h.h6) *  log(h.h6);
+			m6 = std::abs(ma6  - mb6);
+	}
+
+
+	return m1 +m2 +m3 +m4 +m5 +m6; 
 };
 
 

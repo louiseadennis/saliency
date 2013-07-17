@@ -25,6 +25,7 @@
 // OpenCV
 #include "cv.h"
 #include "opencv2/highgui/highgui.hpp"
+#include "geometry_msgs/Point32.h"
 
 
 
@@ -74,6 +75,12 @@ class hu{
 		void featureMapCallback(const sscrovers_pmslam_common::featureMap& msg);
 
 		std::vector<moment_bundle> database;
+
+		std::vector <geometry_msgs::Point32> prev, now;
+
+		std::vector <moment> prevM, nowM;
+
+		bool first;
 };
 
 
