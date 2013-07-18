@@ -34,9 +34,9 @@ void rosTop::process(){
 		check3D = false;
 //ROS_INFO("%i  ==  %i",step_vec,step_feat);
 		if(step_vec == step_feat){
-ROS_INFO("update");
+//ROS_INFO("update");
 		 	newFilter.update(features);
-ROS_INFO("augment");
+//ROS_INFO("augment");
 		    	newFilter.augment(features);
 		}else{
 			ROS_ERROR("Crash, mismatch");
@@ -47,7 +47,7 @@ ROS_INFO("augment");
 }
 
 void rosTop::control_vec_callBack(const sscrovers_pmslam_common::control_vec& msg){
-	ROS_INFO("Recieved control vector - %i", msg.header.stamp.nsec);
+	//ROS_INFO("Recieved control vector - %i", msg.header.stamp.nsec);
 	step_vec  = msg.header.stamp.nsec; 
 	vec temp ;
 	temp << msg.d << endr << msg.theta;
@@ -56,11 +56,11 @@ void rosTop::control_vec_callBack(const sscrovers_pmslam_common::control_vec& ms
 	newFilter.predict(current_ctrlVec);
 	//ROS_INFO("control predicted");
 	checkVec=true;
-	ROS_INFO("Predicted ctrl");
+	//ROS_INFO("Predicted ctrl");
 }
 
 void rosTop::local_features_3D_callBack(const sscrovers_pmslam_common::featureUpdate3DArray& msg){
-	ROS_INFO("Recieved features update - %i", msg.header.stamp.nsec);
+	//ROS_INFO("Recieved features update - %i", msg.header.stamp.nsec);
 	step_feat  = msg.header.stamp.nsec; 
 	features.clear();
 	for(int i=0; i<msg.features.size(); i++){
@@ -77,9 +77,11 @@ void rosTop::local_features_3D_callBack(const sscrovers_pmslam_common::featureUp
 
 
 void rosTop::publish(){
-	vec out = newFilter.getState();
+	vec out = newFilter.getRoverState();
 	//cout << " state prediction " << step_feat << endl << out;
 	visualization_msgs::MarkerArray markerArray;
+
+	std::cout << out;
 
 	/******  Robot placer Rviz****************/
   	uint32_t shape = visualization_msgs::Marker::CUBE;

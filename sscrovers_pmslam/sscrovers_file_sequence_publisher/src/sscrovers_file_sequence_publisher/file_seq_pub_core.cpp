@@ -34,7 +34,8 @@ FileSeqPubCore::FileSeqPubCore(ros::NodeHandle *_n) :
 
   private_node_handle.param("image_file_name_prefix", image_file_name_prefix_, string("frame_orig_"));
 
-  private_node_handle.param("start_no", start_no_, int(1000000));
+  //private_node_handle.param("start_no", start_no_, int(1000000));
+  private_node_handle.param("start_no", start_no_, int(0));
 
   private_node_handle.param("image_extension", image_extension_, string(".jpg"));
   //add '.' when missed in extension
@@ -170,7 +171,7 @@ std::string FileSeqPubCore::makeFileName(const std::string& basename, const int&
 void FileSeqPubCore::acquireImage()
 {
   int stepn = start_no_ + step_;
-
+  
   //build a full path
   std::string filename = path_to_images_ + makeFileName(image_file_name_prefix_, stepn, image_extension_);
 

@@ -278,7 +278,7 @@ void ORCore::publishDB()
 			if(vs[i].step ==step_){
 				t++;
 				sscrovers_pmslam_common::featureUpdate temp;
-				temp.id = i;
+				temp.id = i+1;
 				temp.x = vs[i].x;
 				temp.y = vs[i].y;
 

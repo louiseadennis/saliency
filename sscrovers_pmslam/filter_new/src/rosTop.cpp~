@@ -77,9 +77,11 @@ void rosTop::local_features_3D_callBack(const sscrovers_pmslam_common::featureUp
 
 
 void rosTop::publish(){
-	vec out = newFilter.getState();
+	vec out = newFilter.getRoverState();
 	//cout << " state prediction " << step_feat << endl << out;
 	visualization_msgs::MarkerArray markerArray;
+
+	std::cout << out;
 
 	/******  Robot placer Rviz****************/
   	uint32_t shape = visualization_msgs::Marker::CUBE;
@@ -169,7 +171,7 @@ void rosTop::publish(){
 
 		markerArray.markers.push_back(marker1);
 
-	}
+	}*/
 	marker_array_pub.publish(markerArray);
 	/**********************************************************/
 

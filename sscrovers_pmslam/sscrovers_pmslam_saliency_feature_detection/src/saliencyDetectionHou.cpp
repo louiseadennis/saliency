@@ -23,7 +23,7 @@ void saliencyMapHou::imageCB(const sensor_msgs::ImageConstPtr& msg_ptr)
 	geometry_msgs::PoseArray poseArray;
 	sscrovers_pmslam_common::featureMap fm_;
 
-	Mat image_, saliencymap_, heatMap, image2_;
+	Mat image_, saliencymap_, heatMap, image2_, image3_;
 	Point pt_salient;
 	double maxVal;
 
@@ -39,6 +39,8 @@ void saliencyMapHou::imageCB(const sensor_msgs::ImageConstPtr& msg_ptr)
 	cv_ptr->image.copyTo(image_);
 	cv::Size sizeall = image_.size();
 	image2_ = image_.clone();
+	image3_ = image_.clone();
+	image3_.convertTo(image3_, CV_8UC1,255);
 
 	saliencymap_.create(image_.size(),CV_8UC1);
 	saliencyMapHou::calculateSaliencyMap(&image_, &saliencymap_);
@@ -76,7 +78,7 @@ void saliencyMapHou::imageCB(const sensor_msgs::ImageConstPtr& msg_ptr)
 		if(points.size() > 0){
 			cv::Rect brect = cv::boundingRect(cv::Mat(points).reshape(2));
 			//cv::Rect brect1(brect.x-2,brect.y-2,brect.width+2,brect.height+2);
-			cropped = clonedImage2(brect);
+			cropped = image3_(brect);
 			
 
 			geometry_msgs::Pose poser;

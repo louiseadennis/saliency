@@ -287,9 +287,9 @@ void ORCore::publishDB()
 				}else{
 					if(vs[i].id == 0){
 						vs[i].id = 1;
-						temp.exists = false;
-					}else{
 						temp.exists = true;
+					}else{
+						temp.exists = false;
 					}
 				}
 				tempVec.push_back(temp);

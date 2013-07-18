@@ -4,6 +4,9 @@
 #include <fstream>
 #include <math.h>
 
+
+
+
 hu::hu(ros::NodeHandle *_n){
 	first =true;
 	ros::NodeHandle private_node_handle("~");
@@ -119,15 +122,29 @@ void hu::featureMapCallback(const sscrovers_pmslam_common::featureMap& msg){
 
 		/*******Calculate niave average*******/	
 		double sum;
+		std::vector<double> v;
 		for(int e=0; e<prevM.size();e++){
 			double measure = prevM.at(e).similarity(nowM.at(ptpairs.at(e)));
-			//ROS_INFO("prev (%lf , %lf , %lf , %lf , %lf , %lf , %lf )", prevM.at(e).h0,prevM.at(e).h1,prevM.at(e).h2,prevM.at(e).h3,prevM.at(e).h4,prevM.at(e).h5,prevM.at(e).h6);
-			//ROS_INFO("now (%lf , %lf , %lf , %lf , %lf , %lf , %lf )", nowM.at(ptpairs.at(e)).h0, nowM.at(ptpairs.at(e)).h1, nowM.at(ptpairs.at(e)).h2, nowM.at(ptpairs.at(e)).h3, nowM.at(ptpairs.at(e)).h4, nowM.at(ptpairs.at(e)).h5, nowM.at(ptpairs.at(e)).h6);
-			//ROS_INFO("similar %lf", measure);
+			ROS_INFO("prev (%lf , %lf , %lf , %lf , %lf , %lf , %lf )", prevM.at(e).h0,prevM.at(e).h1,prevM.at(e).h2,prevM.at(e).h3,prevM.at(e).h4,prevM.at(e).h5,prevM.at(e).h6);
+			ROS_INFO("now (%lf , %lf , %lf , %lf , %lf , %lf , %lf )", nowM.at(ptpairs.at(e)).h0, nowM.at(ptpairs.at(e)).h1, nowM.at(ptpairs.at(e)).h2, nowM.at(ptpairs.at(e)).h3, nowM.at(ptpairs.at(e)).h4, nowM.at(ptpairs.at(e)).h5, nowM.at(ptpairs.at(e)).h6);
+			ROS_INFO("similar %lf", measure);
 			sum += measure;
-			
+			v.push_back(measure);	
 		}
-		double average = sum/prevM.size();
+		double mean = sum/prevM.size();
+ROS_INFO("average %lf", mean);
+
+ 	double temp = 0;
+
+        for(int u = 0; u < v.size() ; u++)
+
+        {
+
+             temp += (v.at(u) - mean) * (v.at(u) - mean) ;
+
+        }
+
+        std::cout << temp / v.size();
 			
 		/*************************/
 
@@ -141,7 +158,7 @@ void hu::featureMapCallback(const sscrovers_pmslam_common::featureMap& msg){
 			std::vector<int> mInts;
 			for (int j=0; j<database.size(); j++){
 				double measure;
-				testIn = database.at(j).inBundle(newMoment,average,measure);
+				testIn = database.at(j).inBundle(newMoment,mean,measure);
 				if(testIn){
 					mInts.push_back( j);
 					measures.push_back(measure);
@@ -150,8 +167,8 @@ void hu::featureMapCallback(const sscrovers_pmslam_common::featureMap& msg){
 			//if multiple mins, minimise. 
 			double measureTest = 1000;
 			for(int r=0; r<measures.size();r++){
-				if(measure.at(r)<measureTest){
-					measureTest = measure.at(r);
+				if(measures.at(r)<measureTest){
+					measureTest = measures.at(r);
 					intIn = mInts.at(r);
 				}
 			}	

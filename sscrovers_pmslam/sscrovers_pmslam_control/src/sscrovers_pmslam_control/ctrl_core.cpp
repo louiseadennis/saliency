@@ -1,14 +1,48 @@
 #include "ctrl_core.h"
+#include <fstream>
 #include <math.h> 
 
 using std::string;
+using namespace std;
+
+std::vector<std::vector<double>> getControlData(string filePath)
+{
+    ifstream controlFile(filePath.c_str());
+    string controlLine;
+    std::vector<std::vector<double>> controlVectors;
+    std::vector<double> help;
+    if(controlFile.is_open())
+    {
+        while (controlFile.good())
+        {
+            getline (controlFile, controlLine);
+
+            std::vector<string> tokens;
+            istringstream iss(controlLine);
+            copy(istream_iterator<string>(iss),
+                istream_iterator<string>(),
+                back_inserter<std::vector<string> >(tokens));
+	    help.clear();
+            help.push_back(atof(tokens[0].c_str()));
+	    help.push_back(atof(tokens[1].c_str()));
+            controlVectors.push_back(help);
+
+        }
+        controlFile.close();
+    }
+    else
+        cout << "Could not open control file" << endl;
+
+    return controlVectors;
+}
+
 
 
 CtrlCore::CtrlCore(ros::NodeHandle *_n) :
     it_(*_n)
 {
   wait_time_ = ros::Duration(3.0);
-
+  controlVector = getControlData("/home/sscrovers/Documents/pangu_ekf/input/controldata.csv");
   // Initialise node parameters from launch file or command line.
   // Use a private node handle so that multiple instances of the node can be run simultaneously
   // while using different parameters.
@@ -98,7 +132,9 @@ void CtrlCore::publishImage()
 
 void CtrlCore::publishCtrlVector()
 {
+
   ctrl_vec_msg_.header.stamp.nsec = curr_step_;
+/*
   float tempX = curr_pose_msg_.pose.position.x - prevX;
   float tempY = curr_pose_msg_.pose.position.y - prevY;
   float d2 = tempX*tempX + tempY*tempY;
@@ -106,15 +142,26 @@ void CtrlCore::publishCtrlVector()
 
   float theta = 0;
 
+
   theta = atan2(tempY,tempX);
 
-
+if (theta > 3.141/2.0){
+	theta -= 3.141;
+}
+if (theta < -3.141/2.0){
+	theta += 3.141;
+}
 
   ctrl_vec_msg_.d = d;
   ctrl_vec_msg_.theta = theta;
 
   prevX = curr_pose_msg_.pose.position.x;
   prevY = curr_pose_msg_.pose.position.y;
+*/
+
+  ctrl_vec_msg_.d = controlVector[curr_step_][0];
+  ctrl_vec_msg_.theta = controlVector[curr_step_][1];
+
   ctrl_vec_pub_.publish(ctrl_vec_msg_);
 }
 

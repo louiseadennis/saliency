@@ -136,6 +136,9 @@ private:
   //! callback function for odometry subscription
   void odomCallBack(const nav_msgs::OdometryConstPtr& msg);
 
+
+  std::vector<std::vector<double>> controlVector;
+
 };
 
 #endif //FD_CORE_H

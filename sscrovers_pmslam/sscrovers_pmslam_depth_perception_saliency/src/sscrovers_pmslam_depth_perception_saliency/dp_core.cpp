@@ -13,15 +13,7 @@ DPCore::DPCore(ros::NodeHandle *_n)
   // while using different parameters.
   ros::NodeHandle private_node_handle("~");
   private_node_handle.param("rate", rate_, int(10));
-  //! topics name
-  private_node_handle.param("sub_traj_topic_name", sub_traj_topic_name_, string("est_traj"));
-  private_node_handle.param("sub_pt_topic_name", sub_pt_topic_name_, string("ptpairs"));
-  private_node_handle.param("pub_pt_topic_name", pub_pt_topic_name_, string("points3d"));
-  private_node_handle.param("sub_db_topic_name", sub_db_topic_name_, string("sal_db"));
-  private_node_handle.param("sub_features_topic_name", sub_features_topic_name_, string("features"));
-  //! save to file flags
-  private_node_handle.param("traj_to_file", traj_to_file_f_, bool(false));
-  private_node_handle.param("features_to_file", features_to_file_f_, bool(false));
+
 
   //! publishers
   points3d_pub_ = _n->advertise<sscrovers_pmslam_common::featureUpdate3DArray>("localFeat3D", 1);
@@ -48,11 +40,11 @@ void DPCore::process()
       double _rng = 10;
       int px = 320;
       int py = 240;
-      double VFOV = 52.2;
-      double HFOV = 66.7;
+      double VFOV = 30*3.141/180.0;
+      double HFOV = 67.40*3.141/180.0;
       double pan = 0.0;
-      double tilt = 45.0;
-      double CamH = 0.52;
+      double tilt = -45.0 *3.141/180.0;
+      double CamH = 1;
       for(int i=0;i<arrt.features.size();i++){
 	sscrovers_pmslam_common::featureUpdate3D temp = direct_depth(arrt.features[i], CamH, VFOV,HFOV, pan, tilt);
 	out.features.push_back(temp);
@@ -80,11 +72,18 @@ sscrovers_pmslam_common::featureUpdate3D DPCore::direct_depth(sscrovers_pmslam_c
 	double x_coord = ft.x;
 	double y_coord = ft.y;
 
-	u = (double)x_coord/320;//TODO
-	v = (double)y_coord/240;//TODO
 
-	temp.y = camh/tan(tilt+atan((2*v-1)*tan(vfov/2)));
-	temp.x = temp.y * (2*u - 1) * tan(hfov/2);
+	u = (double)x_coord;//TODO
+	v = (double)y_coord;//TODO
+
+
+	double U = 320.0;
+	double V = 240.0;
+	double betay = atan(((2*v-V)/V)*tan(vfov/2));
+	temp.y = camh/tan(tilt+betay);
+	double betax = ((2*u - U)/U) * tan(hfov/2);
+	temp.x = temp.y * betax;
+
 	temp.z = 0;
 	temp.id = ft.id;
 	temp.exists = ft.exists;
