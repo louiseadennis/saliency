@@ -53,7 +53,7 @@ class moment_bundle{
 		moment_bundle(moment newM);
 		std::vector<moment> bundle;
 		void add(moment newM);
-		bool inBundle(moment newM);
+		bool inBundle(moment newM, double dist);
 };
 
 
@@ -77,6 +77,8 @@ class hu{
 		std::vector<moment_bundle> database;
 
 		std::vector <geometry_msgs::Point32> prev, now;
+
+		std::vector <moment> prevM, nowM;
 
 		bool first;
 };

@@ -137,13 +137,27 @@ void hu::featureMapCallback(const sscrovers_pmslam_common::featureMap& msg){
 			//matcher
 			bool testIn = false;
 			int intIn = -1;
+			std::vector<double> measures;
+			std::vector<int> mInts;
 			for (int j=0; j<database.size(); j++){
-				testIn = database.at(j).inBundle(newMoment);
+				double measure;
+				testIn = database.at(j).inBundle(newMoment,average,measure);
 				if(testIn){
-					intIn = j;
-					break;
+					mInts.push_back( j);
+					measures.push_back(measure);
 				}
 			}
+			//if multiple mins, minimise. 
+			double measureTest = 1000;
+			for(int r=0; r<measures.size();r++){
+				if(measures.at(r)<measureTest){
+					measureTest = measures.at(r);
+					intIn = mInts.at(r);
+				}
+			}	
+
+
+
 			sscrovers_pmslam_common::featureUpdate temp;
 			if (testIn){
 				database[intIn].add(newMoment);
@@ -243,9 +257,10 @@ double moment::similarity(moment h){
 };
 
 
-bool moment_bundle::inBundle(moment newM){
+bool moment_bundle::inBundle(moment newM, double dist, double &outputValue){
 	for (int i=0; i<bundle.size();i++){
-		if ( bundle.at(i).similarity(newM) < DIST){
+		outputValue = bundle.at(i).similarity(newM);
+		if ( outputValue < dist){
 			return true;
 		}
 	}

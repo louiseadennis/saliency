@@ -53,7 +53,7 @@ class moment_bundle{
 		moment_bundle(moment newM);
 		std::vector<moment> bundle;
 		void add(moment newM);
-		bool inBundle(moment newM);
+		bool inBundle(moment newM, double dist,double &outputValue);
 };
 
 
