@@ -40,7 +40,6 @@ void saliencyMapHou::imageCB(const sensor_msgs::ImageConstPtr& msg_ptr)
 	cv::Size sizeall = image_.size();
 	image2_ = image_.clone();
 	image3_ = image_.clone();
-	image3_.convertTo(image3_, CV_8UC1,255);
 
 	saliencymap_.create(image_.size(),CV_8UC1);
 	saliencyMapHou::calculateSaliencyMap(&image_, &saliencymap_);
@@ -79,7 +78,12 @@ void saliencyMapHou::imageCB(const sensor_msgs::ImageConstPtr& msg_ptr)
 			cv::Rect brect = cv::boundingRect(cv::Mat(points).reshape(2));
 			//cv::Rect brect1(brect.x-2,brect.y-2,brect.width+2,brect.height+2);
 			cropped = image3_(brect);
-			
+			 Mat gray_image;
+			 cvtColor( cropped, cropped, CV_BGR2GRAY );
+
+			//namedWindow( "Display window", CV_WINDOW_AUTOSIZE );// Create a window for display.
+			//imshow( "Display window", cropped ); 
+			//waitKey(0);
 
 			geometry_msgs::Pose poser;
 			poser.position.x = brect.x + brect.width/2;
@@ -87,6 +91,7 @@ void saliencyMapHou::imageCB(const sensor_msgs::ImageConstPtr& msg_ptr)
 
 			temppoint_.x = brect.x;
 			temppoint_.y = brect.y;
+
 			fillImage(temp_, "mono8",cropped.rows, cropped.cols, cropped.step, const_cast<uint8_t*>(cropped.data));
 			fm_.points.push_back(temppoint_);
 			fm_.imgs.push_back(temp_);

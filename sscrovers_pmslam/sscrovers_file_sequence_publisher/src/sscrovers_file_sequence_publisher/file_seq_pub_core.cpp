@@ -34,8 +34,8 @@ FileSeqPubCore::FileSeqPubCore(ros::NodeHandle *_n) :
 
   private_node_handle.param("image_file_name_prefix", image_file_name_prefix_, string("frame_orig_"));
 
-  //private_node_handle.param("start_no", start_no_, int(1000000));
-  private_node_handle.param("start_no", start_no_, int(0));
+  private_node_handle.param("start_no", start_no_, int(1000000));
+  //private_node_handle.param("start_no", start_no_, int(0));
 
   private_node_handle.param("image_extension", image_extension_, string(".jpg"));
   //add '.' when missed in extension

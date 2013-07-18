@@ -34,9 +34,9 @@ void rosTop::process(){
 		check3D = false;
 //ROS_INFO("%i  ==  %i",step_vec,step_feat);
 		if(step_vec == step_feat){
-ROS_INFO("update");
+//ROS_INFO("update");
 		 	newFilter.update(features);
-ROS_INFO("augment");
+//ROS_INFO("augment");
 		    	newFilter.augment(features);
 		}else{
 			ROS_ERROR("Crash, mismatch");
@@ -47,7 +47,7 @@ ROS_INFO("augment");
 }
 
 void rosTop::control_vec_callBack(const sscrovers_pmslam_common::control_vec& msg){
-	ROS_INFO("Recieved control vector - %i", msg.header.stamp.nsec);
+	//ROS_INFO("Recieved control vector - %i", msg.header.stamp.nsec);
 	step_vec  = msg.header.stamp.nsec; 
 	vec temp ;
 	temp << msg.d << endr << msg.theta;
@@ -56,11 +56,11 @@ void rosTop::control_vec_callBack(const sscrovers_pmslam_common::control_vec& ms
 	newFilter.predict(current_ctrlVec);
 	//ROS_INFO("control predicted");
 	checkVec=true;
-	ROS_INFO("Predicted ctrl");
+	//ROS_INFO("Predicted ctrl");
 }
 
 void rosTop::local_features_3D_callBack(const sscrovers_pmslam_common::featureUpdate3DArray& msg){
-	ROS_INFO("Recieved features update - %i", msg.header.stamp.nsec);
+	//ROS_INFO("Recieved features update - %i", msg.header.stamp.nsec);
 	step_feat  = msg.header.stamp.nsec; 
 	features.clear();
 	for(int i=0; i<msg.features.size(); i++){
@@ -117,8 +117,8 @@ void rosTop::publish(){
 	marker.scale.z = .10;
 
 	// Set the color -- be sure to set alpha to something non-zero!
-	marker.color.r = 0.0f;
-	marker.color.g = 1.0f;
+	marker.color.r = 1.0f;
+	marker.color.g = 0.0f;
 	marker.color.b = 0.0f;
 	marker.color.a = 1.0;
 

@@ -139,6 +139,8 @@ private:
 
   std::vector<std::vector<double>> controlVector;
 
+  double prevTheta;
+
 };
 
 #endif //FD_CORE_H

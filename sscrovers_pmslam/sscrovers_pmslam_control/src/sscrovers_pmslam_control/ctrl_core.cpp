@@ -76,6 +76,8 @@ CtrlCore::CtrlCore(ros::NodeHandle *_n) :
   curr_step_ = 0;
   prevX = 0;
   prevY = 0;
+
+  prevTheta =0;
 }
 
 CtrlCore::~CtrlCore()
@@ -134,7 +136,7 @@ void CtrlCore::publishCtrlVector()
 {
 
   ctrl_vec_msg_.header.stamp.nsec = curr_step_;
-/*
+
   float tempX = curr_pose_msg_.pose.position.x - prevX;
   float tempY = curr_pose_msg_.pose.position.y - prevY;
   float d2 = tempX*tempX + tempY*tempY;
@@ -153,15 +155,16 @@ if (theta < -3.141/2.0){
 }
 
   ctrl_vec_msg_.d = d;
-  ctrl_vec_msg_.theta = theta;
+  ctrl_vec_msg_.theta = theta - prevTheta;
+  prevTheta = theta;
 
   prevX = curr_pose_msg_.pose.position.x;
   prevY = curr_pose_msg_.pose.position.y;
-*/
 
+/*
   ctrl_vec_msg_.d = controlVector[curr_step_][0];
   ctrl_vec_msg_.theta = controlVector[curr_step_][1];
-
+*/
   ctrl_vec_pub_.publish(ctrl_vec_msg_);
 }
 

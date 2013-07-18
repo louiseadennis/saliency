@@ -42,6 +42,14 @@ void hu::featureMapCallback(const sscrovers_pmslam_common::featureMap& msg){
 
 			vector<vector<Point> > contours;
 
+  //Canny( image_, image_, 100, 100*2, 3 );
+			//threshold(image_, image_, 0, 255, cv::THRESH_TOZERO|cv::THRESH_OTSU);
+
+			//threshold(image_, image_, 0, 255, cv::THRESH_BINARY|cv::THRESH_OTSU);
+			namedWindow( "Display window", CV_WINDOW_AUTOSIZE );// Create a window for display.
+			imshow( "Display window", image_ ); 
+			waitKey(0);
+
 			cv::findContours(image_, contours, CV_RETR_LIST, CV_CHAIN_APPROX_NONE);
 	
 			 
@@ -52,6 +60,10 @@ void hu::featureMapCallback(const sscrovers_pmslam_common::featureMap& msg){
 			HuMoments( mm , huArray);
 
 			moment newMoment = moment(huArray[0], huArray[1], huArray[2], huArray[3], huArray[4], huArray[5], huArray[6]);
+ROS_INFO("(%lf , %lf , %lf , %lf , %lf , %lf , %lf )", huArray[0], huArray[1], huArray[2], huArray[3], huArray[4], huArray[5], huArray[6]);	
+
+
+		 
 
 			prevM.push_back(newMoment);
 		}
@@ -108,13 +120,13 @@ void hu::featureMapCallback(const sscrovers_pmslam_common::featureMap& msg){
 
 			vector<vector<Point> > contours;
 
-
+  Canny( image_, image_, 100, 100*2, 3 );
 
 			findContours(image_, contours, CV_RETR_LIST, CV_CHAIN_APPROX_NONE);
 			double huArray[7];
 			Moments mm = moments(contours[0],true);
 			HuMoments( mm , huArray);
-//ROS_INFO("(%lf , %lf , %lf , %lf , %lf , %lf , %lf )", huArray[0], huArray[1], huArray[2], huArray[3], huArray[4], huArray[5], huArray[6]);			 
+ROS_INFO("(%lf , %lf , %lf , %lf , %lf , %lf , %lf )", huArray[0], huArray[1], huArray[2], huArray[3], huArray[4], huArray[5], huArray[6]);			 
 			moment newMoment = moment(huArray[0], huArray[1], huArray[2], huArray[3], huArray[4], huArray[5], huArray[6]);
 			nowM.push_back(newMoment);
 		}

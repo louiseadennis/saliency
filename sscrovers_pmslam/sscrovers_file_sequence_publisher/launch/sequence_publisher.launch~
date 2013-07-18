@@ -11,10 +11,10 @@
 	    <param name="pub_odom_topic_name" value="odom" />
 
 		<!-- path to location of images -->
-	    <param name="path_to_images" value="$(find blob_analysis)/sample_images/" />
+	    <param name="path_to_images" value="/home/sscrovers/Documents/pangu_ekf/input/" />
 
 		<!-- prefix for images files name -->
-	    <param name="image_file_name_prefix" value="frame_orig_" />
+	    <param name="image_file_name_prefix" value="image_" />
 
 		<!-- path to location of trajectory -->
 	    <param name="path_to_trajectory" value="$(find blob_analysis)/sample_images/" />
