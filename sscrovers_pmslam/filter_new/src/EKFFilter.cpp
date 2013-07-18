@@ -42,23 +42,24 @@ void EKFFilter::update(vector<features3D> features)
     int featureCount = 0;
 	for(int i=0; i<(int)features.size(); i++)
 		if(features[i].getExists()) featureCount++;	
+
     mat H = zeros<mat>(m_state.n_rows, m_state.n_rows);
     vec difference = zeros<vec>(m_state.n_rows);
     mat measurementCovariance = zeros<mat>(m_state.n_rows, m_state.n_rows);
-
+ROS_INFO("h3, %lu", features.size());
     for(int i=0; i<(int)features.size(); i++)
     {
-
+ROS_INFO("h1 %i",i);
         if(features[i].getExists())
         {
-
+ROS_INFO("h2 exists");
             int featureIndex = 2*features[i].getIndex() - 2;
             vec predictedFeatures;
-
+ROS_INFO("h6 exists, %i", featureIndex);
             H(span(featureIndex, featureIndex+1), span::all) = observeModel(featureIndex, &predictedFeatures);
-
+ROS_INFO("h7 exists");
             difference(featureIndex) = features[i].getRange() - predictedFeatures(0);
-
+ROS_INFO("h8 exists");
             difference(featureIndex+1) = features[i].getBearing() - predictedFeatures(1);
             measurementCovariance(span(featureIndex, featureIndex+1), span(featureIndex, featureIndex+1)) = m_measurementNoise;
         }

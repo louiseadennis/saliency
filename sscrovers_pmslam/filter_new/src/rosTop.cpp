@@ -32,11 +32,11 @@ void rosTop::process(){
 	if((checkVec) && (check3D)){
 		checkVec = false;
 		check3D = false;
-//ROS_INFO("%i  ==  %i",step_vec,step_feat);
+ROS_INFO("%i  ==  %i",step_vec,step_feat);
 		if(step_vec == step_feat){
-//ROS_INFO("update");
+ROS_INFO("update");
 		 	newFilter.update(features);
-//ROS_INFO("augment");
+ROS_INFO("augment");
 		    	newFilter.augment(features);
 		}else{
 			ROS_ERROR("Crash, mismatch");
@@ -47,20 +47,20 @@ void rosTop::process(){
 }
 
 void rosTop::control_vec_callBack(const sscrovers_pmslam_common::control_vec& msg){
-	//ROS_INFO("Recieved control vector - %i", msg.header.stamp.nsec);
+	ROS_INFO("Recieved control vector - %i", msg.header.stamp.nsec);
 	step_vec  = msg.header.stamp.nsec; 
 	vec temp ;
 	temp << msg.d << endr << msg.theta;
 	current_ctrlVec	= temp;	
-	//ROS_INFO("control prediction");
+	ROS_INFO("control prediction");
 	newFilter.predict(current_ctrlVec);
-	//ROS_INFO("control predicted");
+	ROS_INFO("control predicted");
 	checkVec=true;
 	//ROS_INFO("Predicted ctrl");
 }
 
 void rosTop::local_features_3D_callBack(const sscrovers_pmslam_common::featureUpdate3DArray& msg){
-	//ROS_INFO("Recieved features update - %i", msg.header.stamp.nsec);
+	ROS_INFO("Recieved features update - %i", msg.header.stamp.nsec);
 	step_feat  = msg.header.stamp.nsec; 
 	features.clear();
 	for(int i=0; i<msg.features.size(); i++){

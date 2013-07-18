@@ -155,7 +155,8 @@ if (theta < -3.141/2.0){
 }
 
   ctrl_vec_msg_.d = d;
-  ctrl_vec_msg_.theta = theta;
+  ctrl_vec_msg_.theta = theta - prevTheta;
+  prevTheta = theta;
 
   prevX = curr_pose_msg_.pose.position.x;
   prevY = curr_pose_msg_.pose.position.y;
