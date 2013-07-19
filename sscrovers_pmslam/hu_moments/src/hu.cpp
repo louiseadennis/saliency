@@ -24,6 +24,7 @@ hu::~hu(){};
 
 void hu::featureMapCallback(const sscrovers_pmslam_common::featureMap& msg){
 	if(first){
+
 		first = false;
 		prev = msg.points;
 		for (int i=0; i<msg.imgs.size(); i++){
@@ -46,11 +47,45 @@ void hu::featureMapCallback(const sscrovers_pmslam_common::featureMap& msg){
 			//threshold(image_, image_, 0, 255, cv::THRESH_TOZERO|cv::THRESH_OTSU);
 
 			//threshold(image_, image_, 0, 255, cv::THRESH_BINARY|cv::THRESH_OTSU);
-			namedWindow( "Display window", CV_WINDOW_AUTOSIZE );// Create a window for display.
-			imshow( "Display window", image_ ); 
-			waitKey(0);
 
-			cv::findContours(image_, contours, CV_RETR_LIST, CV_CHAIN_APPROX_NONE);
+/*****************pangu thresholding******/
+
+			cv::Mat first, second, third, final, temp;
+
+			first = image_.clone();
+			second = image_.clone();
+			third = image_.clone();
+
+			//threshold(first, first, 130, 255, cv::THRESH_TRUNC_INV|cv::THRESH_OTSU);
+			threshold(first, first, 130, 255, cv::THRESH_BINARY);
+
+			//threshold(second, second, 50, 255, cv::THRESH_TRUNC|cv::THRESH_OTSU);
+			threshold(second, second, 60, 255, cv::THRESH_BINARY_INV);
+
+			Canny( third, third, 100, 100*2, 3 );
+
+			
+			int dilation_type = MORPH_ELLIPSE;
+			int dilation_size = 3;
+			Mat element = getStructuringElement( dilation_type,
+                                       Size( 2*dilation_size + 1, 2*dilation_size+1 ),
+                                       Point( dilation_size, dilation_size ) );
+			dilate( third, third, element );
+			erode( third, third, element );
+			dilate( third, third, element );
+			erode( third, third, element );
+
+			
+			cv::max(first,second,temp);
+			cv::max(temp,third,final);
+/******************************************/
+
+ 
+			//imshow( "canny", image_ ); 
+			//imshow( "final", final ); 
+			//waitKey(0);
+
+			cv::findContours(final, contours, CV_RETR_LIST, CV_CHAIN_APPROX_NONE);
 	
 			 
 			double huArray[7];
@@ -60,7 +95,7 @@ void hu::featureMapCallback(const sscrovers_pmslam_common::featureMap& msg){
 			HuMoments( mm , huArray);
 
 			moment newMoment = moment(huArray[0], huArray[1], huArray[2], huArray[3], huArray[4], huArray[5], huArray[6]);
-ROS_INFO("(%lf , %lf , %lf , %lf , %lf , %lf , %lf )", huArray[0], huArray[1], huArray[2], huArray[3], huArray[4], huArray[5], huArray[6]);	
+//ROS_INFO("(%lf , %lf , %lf , %lf , %lf , %lf , %lf )", huArray[0], huArray[1], huArray[2], huArray[3], huArray[4], huArray[5], huArray[6]);	
 
 
 		 
@@ -73,15 +108,85 @@ ROS_INFO("(%lf , %lf , %lf , %lf , %lf , %lf , %lf )", huArray[0], huArray[1], h
 
 
 	}else{
+
 		now = msg.points;
 		step_ = msg.header.stamp.nsec;
 		sscrovers_pmslam_common::featureUpdateArray tempArray;
 		tempArray.header = msg.header;
 		vector <sscrovers_pmslam_common::featureUpdate> tempVec;
 
+
+		/************calculate latest moments*******/
+
+		for (int i=0; i<msg.imgs.size(); i++){
+			cv_bridge::CvImagePtr cv_ptr;
+			Mat image_;
+			try
+			{
+			
+				cv_ptr = cv_bridge::toCvCopy(msg.imgs[i], enc::MONO8);
+			}
+			catch (cv_bridge::Exception& e)
+			{
+				ROS_ERROR("cv_bridge exception: %s", e.what());
+			}
+			cv_ptr->image.copyTo(image_);
+
+			vector<vector<Point> > contours;
+
+			/*****************pangu thresholding******/
+
+			cv::Mat first, second, third, final, temp;
+
+			first = image_.clone();
+			second = image_.clone();
+			third = image_.clone();
+
+			//threshold(first, first, 130, 255, cv::THRESH_TRUNC_INV|cv::THRESH_OTSU);
+			threshold(first, first, 130, 255, cv::THRESH_BINARY);
+
+			//threshold(second, second, 50, 255, cv::THRESH_TRUNC|cv::THRESH_OTSU);
+			threshold(second, second, 60, 255, cv::THRESH_BINARY_INV);
+
+			Canny( third, third, 100, 100*2, 3 );
+
+			
+			int dilation_type = MORPH_ELLIPSE;
+			int dilation_size = 3;
+			Mat element = getStructuringElement( dilation_type,
+                                       Size( 2*dilation_size + 1, 2*dilation_size+1 ),
+                                       Point( dilation_size, dilation_size ) );
+			dilate( third, third, element );
+			erode( third, third, element );
+			dilate( third, third, element );
+			erode( third, third, element );
+
+			
+			cv::max(first,second,temp);
+			cv::max(temp,third,final);
+			/******************************************/
+
+			
+
+			findContours(final, contours, CV_RETR_LIST, CV_CHAIN_APPROX_NONE);
+
+			if (contours.size()<1){
+				//if no rock seen in box; pop box
+				
+			
+			} else{
+				double huArray[7];
+				Moments mm = moments(contours[0],true);
+
+				HuMoments( mm , huArray);
+				//ROS_INFO("(%lf , %lf , %lf , %lf , %lf , %lf , %lf )", huArray[0], huArray[1], huArray[2], huArray[3], huArray[4], huArray[5], huArray[6]);	
+				moment newMoment = moment(huArray[0], huArray[1], huArray[2], huArray[3], huArray[4], huArray[5], huArray[6]);
+				nowM.push_back(newMoment);
+			}
+		}
+
 		/****** Niave pt pairs ********/
 		std::vector<int> ptpairs;
-
 		for (int q=0; q<prev.size();q++){
 			float dist = 10000;
 			int pair =-1;
@@ -100,48 +205,19 @@ ROS_INFO("(%lf , %lf , %lf , %lf , %lf , %lf , %lf )", huArray[0], huArray[1], h
 		}
 		
 
-		/************calculate latest moments*******/
-
-
-
-		for (int i=0; i<msg.imgs.size(); i++){
-			cv_bridge::CvImagePtr cv_ptr;
-			Mat image_;
-			try
-			{
-			
-				cv_ptr = cv_bridge::toCvCopy(msg.imgs[i], enc::MONO8);
-			}
-			catch (cv_bridge::Exception& e)
-			{
-				ROS_ERROR("cv_bridge exception: %s", e.what());
-			}
-			cv_ptr->image.copyTo(image_);
-
-			vector<vector<Point> > contours;
-
-  Canny( image_, image_, 100, 100*2, 3 );
-
-			findContours(image_, contours, CV_RETR_LIST, CV_CHAIN_APPROX_NONE);
-			double huArray[7];
-			Moments mm = moments(contours[0],true);
-			HuMoments( mm , huArray);
-ROS_INFO("(%lf , %lf , %lf , %lf , %lf , %lf , %lf )", huArray[0], huArray[1], huArray[2], huArray[3], huArray[4], huArray[5], huArray[6]);			 
-			moment newMoment = moment(huArray[0], huArray[1], huArray[2], huArray[3], huArray[4], huArray[5], huArray[6]);
-			nowM.push_back(newMoment);
-		}
-
-
+	ROS_INFO("dangle, %lu", prevM.size());		 
 		/*******Calculate niave average*******/	
-		double sum;
+		double sum =0;
 		std::vector<double> v;
 		for(int e=0; e<prevM.size();e++){
-			double measure = prevM.at(e).similarity(nowM.at(ptpairs.at(e)));
-			ROS_INFO("prev (%lf , %lf , %lf , %lf , %lf , %lf , %lf )", prevM.at(e).h0,prevM.at(e).h1,prevM.at(e).h2,prevM.at(e).h3,prevM.at(e).h4,prevM.at(e).h5,prevM.at(e).h6);
-			ROS_INFO("now (%lf , %lf , %lf , %lf , %lf , %lf , %lf )", nowM.at(ptpairs.at(e)).h0, nowM.at(ptpairs.at(e)).h1, nowM.at(ptpairs.at(e)).h2, nowM.at(ptpairs.at(e)).h3, nowM.at(ptpairs.at(e)).h4, nowM.at(ptpairs.at(e)).h5, nowM.at(ptpairs.at(e)).h6);
-			ROS_INFO("similar %lf", measure);
-			sum += measure;
-			v.push_back(measure);	
+			if (  ptpairs.at(e) > -1 ) {
+				double measure = prevM.at(e).similarity(nowM.at(ptpairs.at(e)));
+ROS_INFO("prev (%lf , %lf , %lf , %lf , %lf , %lf , %lf )", prevM.at(e).h0,prevM.at(e).h1,prevM.at(e).h2,prevM.at(e).h3,prevM.at(e).h4,prevM.at(e).h5,prevM.at(e).h6);
+ROS_INFO("now (%lf , %lf , %lf , %lf , %lf , %lf , %lf )", nowM.at(ptpairs.at(e)).h0, nowM.at(ptpairs.at(e)).h1, nowM.at(ptpairs.at(e)).h2, nowM.at(ptpairs.at(e)).h3, nowM.at(ptpairs.at(e)).h4, nowM.at(ptpairs.at(e)).h5, nowM.at(ptpairs.at(e)).h6);
+ROS_INFO("similar %lf", measure);
+				sum += measure;
+				v.push_back(measure);
+			}	
 		}
 		double mean = sum/prevM.size();
 ROS_INFO("average %lf", mean);
@@ -160,7 +236,7 @@ ROS_INFO("average %lf", mean);
 			
 		/*************************/
 
-		for (int i=0; i<msg.imgs.size(); i++){
+		for (int i=0; i<nowM.size(); i++){
  
 			moment newMoment = nowM.at(i);
 			//matcher
