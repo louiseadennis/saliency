@@ -13,6 +13,10 @@ EKFFilter::~EKFFilter()
 {
 }
 
+vector<vector<double> > getMap()
+{
+}
+
 void EKFFilter::predict(vec controlData)
 {
 	int stateLength = m_state.n_rows;
@@ -42,28 +46,23 @@ void EKFFilter::update(vector<features3D> features)
     int featureCount = 0;
 	for(int i=0; i<(int)features.size(); i++)
 		if(features[i].getExists()) featureCount++;	
-
     mat H = zeros<mat>(m_state.n_rows, m_state.n_rows);
     vec difference = zeros<vec>(m_state.n_rows);
     mat measurementCovariance = zeros<mat>(m_state.n_rows, m_state.n_rows);
 
     for(int i=0; i<(int)features.size(); i++)
     {
-
         if(features[i].getExists())
         {
-
             int featureIndex = 2*features[i].getIndex() - 2;
             vec predictedFeatures;
-
             H(span(featureIndex, featureIndex+1), span::all) = observeModel(featureIndex, &predictedFeatures);
-
             difference(featureIndex) = features[i].getRange() - predictedFeatures(0);
-
             difference(featureIndex+1) = features[i].getBearing() - predictedFeatures(1);
             measurementCovariance(span(featureIndex, featureIndex+1), span(featureIndex, featureIndex+1)) = m_measurementNoise;
         }
     }
+    choleskyUpdate(difference, measurementCovariance, H);
 }
 
 void EKFFilter::augment(vector<features3D> features)
@@ -80,6 +79,7 @@ void EKFFilter::augment(vector<features3D> features)
             m_state.resize(stateSize+2);
             m_state(stateSize) = m_state(0) + range*c;
             m_state(stateSize+1) = m_state(1) + range*s;
+	    featureMap.add(m_state(stateSize), m_state(stateSize+1), 0);
             mat vehicleJacobian;
             vehicleJacobian << 1 << 0 << -range*s << endr
                             << 0 << 1 << range*c << endr;

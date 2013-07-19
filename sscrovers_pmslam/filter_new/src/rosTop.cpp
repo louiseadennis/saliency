@@ -112,9 +112,9 @@ void rosTop::publish(){
 	marker.pose.orientation.w = 1.0;
 
 	// Set the scale of the marker -- 1x1x1 here means 1m on a side
-	marker.scale.x = 1.10;
-	marker.scale.y = 1.10;
-	marker.scale.z = 1.10;
+	marker.scale.x = .30;
+	marker.scale.y = .30;
+	marker.scale.z = 0.30;
 
 	// Set the color -- be sure to set alpha to something non-zero!
 	marker.color.r = 1.0f;

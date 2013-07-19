@@ -77,6 +77,8 @@ catkin_package(
  add_executable(filter_new_node src/rosTop.cpp
 				src/features3D.cpp
 				src/EKFFilter.cpp
+				src/map.cpp
+				src/mapFeature.cpp
 )
 
 ## Add cmake target dependencies of the executable/library

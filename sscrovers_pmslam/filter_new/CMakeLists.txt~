@@ -74,7 +74,7 @@ catkin_package(
 
 
 ## Declare a cpp executable
- add_executable(filter_new_node src/test.cpp
+ add_executable(filter_new_node src/rosTop.cpp
 				src/features3D.cpp
 				src/EKFFilter.cpp
 )

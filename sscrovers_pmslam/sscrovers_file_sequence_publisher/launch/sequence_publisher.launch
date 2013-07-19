@@ -2,7 +2,7 @@
 	<node pkg="sscrovers_file_sequence_publisher" type="file_seq_pub_node" name="file_data_publisher" output="screen">
 
 	<!-- frequency rate of node -->
-	<param name="rate" value="0.5" />
+	<param name="rate" value="1" />
 
 	    <!-- name of output image topic -->
 	    <param name="pub_image_topic_name" value="cam_image" />
@@ -11,12 +11,12 @@
 	    <param name="pub_odom_topic_name" value="odom" />
 
 		<!-- path to location of images -->
-	    <param name="path_to_images" value="/home/sscrovers/Documents/pangu_ekf/input/" />
+	    <param name="path_to_images" value="$(find blob_analysis)/sample_images/" />
 
 		<!-- prefix for images files name -->
-	    <param name="image_file_name_prefix" value="image_" />
+	    <param name="image_file_name_prefix" value="frame_orig_" />
 
-	    <param name="start_no" value="0" />
+	    <param name="start_no" value="1000000" />
 
 		<!-- path to location of trajectory -->
 	    <param name="path_to_trajectory" value="$(find blob_analysis)/sample_images/" />
