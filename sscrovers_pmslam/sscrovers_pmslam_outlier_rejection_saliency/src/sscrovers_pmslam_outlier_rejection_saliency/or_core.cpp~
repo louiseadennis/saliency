@@ -97,7 +97,7 @@ ptpairs ORCore::nearestNeighbour(){
 	float d, area, areaMO;
 	int framee;
 	for(int i = 0; i<NVec.size(); i++){
-		dmin=32;
+		dmin=160;
 		closest=i;
 		framee = 0;
 		for(int j=0; j<NMinusOneVec.size(); j++){
@@ -127,7 +127,7 @@ ptpairs ORCore::nearestNeighbour2(SALPointVec N, SALPointVec NM2, ptpairs in){
 	float d, area, areaMO;
 	int framee;
 	for(int i = 0; i<N.size(); i++){
-		dmin=32;
+		dmin=160;
 		closest=i;
 		framee=0;
 		if(in.atFrame(i)==0){
@@ -278,11 +278,11 @@ void ORCore::publishDB()
 			if(vs[i].step ==step_){
 				t++;
 				sscrovers_pmslam_common::featureUpdate temp;
-				temp.id = i;
+				temp.id = i+1;
 				temp.x = vs[i].x;
 				temp.y = vs[i].y;
 
-				if(firstTime < 2){
+				if(firstTime < 0){
 					temp.exists = false;
 				}else{
 					if(vs[i].id == 0){
@@ -297,6 +297,17 @@ void ORCore::publishDB()
 		}
 
 
+		local_msgs_.features = tempVec;
+		db_pub_.publish(local_msgs_);
+	}else{
+		for (int i=0; i<vs.size();i++){
+			sscrovers_pmslam_common::featureUpdate temp;
+			temp.id = i+1;
+			temp.x = vs[i].x;
+			temp.y = vs[i].y;
+			temp.exists = false;
+			tempVec.push_back(temp);
+		}
 		local_msgs_.features = tempVec;
 		db_pub_.publish(local_msgs_);
 	}
