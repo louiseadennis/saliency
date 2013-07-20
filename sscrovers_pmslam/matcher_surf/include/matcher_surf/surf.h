@@ -22,6 +22,8 @@
 #include <sensor_msgs/image_encodings.h>
 #include <cv_bridge/cv_bridge.h>
 
+#include <geometry_msgs/PoseArray.h>
+
 // OpenCV
 #include "opencv/cv.h"
 #include "opencv/highgui.h"
@@ -40,15 +42,26 @@ using std::string;
 using namespace cv;
 namespace enc = sensor_msgs::image_encodings;
 
+class descriptor
+{
+public:
+	double x,y;
+	Mat d;
+	descriptor();
+	void add(Mat&,int,double,double);
+	~descriptor();
+};
 
 class surf_bundle{
-	public:
-		surf_bundle();
-		surf_bundle(std::vector<KeyPoint> newM);
-		std::vector< std::vector <KeyPoint> > bundle;
-		void add(std::vector<KeyPoint> newM);
-		bool inBundle(std::vector<KeyPoint>, double dist,double &outputValue);
+public:
+	double kx, ky;
+	surf_bundle();
+	surf_bundle(std::vector<descriptor> newM);
+	std::vector< std::vector<descriptor> > bundle;
+	void add(std::vector<descriptor> newM);
+	bool inBundle(std::vector<descriptor> in, double dist,double &outputValue);
 };
+
 
 
 class surf{
@@ -56,24 +69,30 @@ class surf{
 		surf(ros::NodeHandle *_n);
 		~surf();
 
+		int step1_, step2_;
 		//! rate for node main loop
 		int rate_;
 	private:
-
+    		image_transport::ImageTransport it_;
+    		image_transport::Subscriber 	image_sub_;
 		//! features subscriber
-		ros::Subscriber featureMap_sub_;
+		ros::Subscriber feature_sub_;
 		//! db publisher
 		ros::Publisher db_pub_;
 		int step_;
 
-		void featureMapCallback(const sscrovers_pmslam_common::featureMap& msg);
-
+		void imageCallback(const sensor_msgs::ImageConstPtr& msg_ptr);
+		void featureCallback(const geometry_msgs::PoseArray& msg);
+		void process();
 		std::vector<surf_bundle> database;
 
 		std::vector <geometry_msgs::Point32> prev, now;
-
+		std::vector<geometry_msgs::Pose> latestFeat;
 
 		bool first;
+
+		Mat descriptors_1;
+		std::vector<KeyPoint> keypoints_1;
 };
 
 

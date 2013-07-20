@@ -4,7 +4,7 @@ project(matcher_surf)
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
-find_package(catkin REQUIRED COMPONENTS roscpp cv_bridge)
+find_package(catkin REQUIRED COMPONENTS roscpp cv_bridge image_transport)
 
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
@@ -50,7 +50,7 @@ find_package(catkin REQUIRED COMPONENTS roscpp cv_bridge)
 catkin_package(
    INCLUDE_DIRS include
 #  LIBRARIES matcher_surf
-  CATKIN_DEPENDS roscpp cv_bridge
+  CATKIN_DEPENDS roscpp cv_bridge image_transport
 #  DEPENDS system_lib
 )
 

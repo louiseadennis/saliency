@@ -54,7 +54,6 @@ void saliencyMapHou::imageCB(const sensor_msgs::ImageConstPtr& msg_ptr)
 	//	CONVERT FROM CV::MAT TO ROSIMAGE FOR PUBLISHING
 	saliencymap_.convertTo(saliencymap_, CV_8UC1,255);
 
-
 	threshold(saliencymap_, saliencymap_, 0, 255, cv::THRESH_TOZERO|cv::THRESH_OTSU);
 
 	heatMap = saliencymap_.clone();

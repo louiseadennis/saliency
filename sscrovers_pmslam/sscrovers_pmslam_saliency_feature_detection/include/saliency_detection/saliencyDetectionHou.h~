@@ -33,10 +33,9 @@ class saliencyMapHou
 {
 protected:
     	ros::NodeHandle nh_;
-    	ros::Publisher point_pub_;
-    	image_transport::ImageTransport it_;
+    	ros::Publisher point_pub_, featureMap_pub_;
     	image_transport::Subscriber 	image_sub_;
-    	image_transport::Publisher		saliencymap_pub_, heatmap_pub_, featureMap_pub_;
+    	image_transport::Publisher		saliencymap_pub_, heatmap_pub_;
 	ros::Publisher features_pub_;
 
 public:

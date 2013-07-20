@@ -81,9 +81,9 @@ void saliencyMapHou::imageCB(const sensor_msgs::ImageConstPtr& msg_ptr)
 			 Mat gray_image;
 			 cvtColor( cropped, cropped, CV_BGR2GRAY );
 
-			namedWindow( "Display window", CV_WINDOW_AUTOSIZE );// Create a window for display.
-			imshow( "Display window", cropped ); 
-			waitKey(0);
+			//namedWindow( "Display window", CV_WINDOW_AUTOSIZE );// Create a window for display.
+			//imshow( "Display window", cropped ); 
+			//waitKey(0);
 
 			geometry_msgs::Pose poser;
 			poser.position.x = brect.x + brect.width/2;
