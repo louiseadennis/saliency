@@ -1,0 +1,8 @@
+<launch>
+	<node pkg="hu_moments" type="hu_moments_node" name="hu_moments" output="screen">
+      <!-- frequency rate of node -->
+      <param name="rate" value="1.0" />
+
+    </node>
+</launch>
+	

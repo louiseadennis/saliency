@@ -210,7 +210,7 @@ void hu::featureMapCallback(const sscrovers_pmslam_common::featureMap& msg){
 		double sum =0;
 		std::vector<double> v;
 		for(int e=0; e<prevM.size();e++){
-			if (  ptpairs.at(e) > -1 ) {
+			if (  prevM.size() > -1 ) {
 				double measure = prevM.at(e).similarity(nowM.at(ptpairs.at(e)));
 ROS_INFO("prev (%lf , %lf , %lf , %lf , %lf , %lf , %lf )", prevM.at(e).h0,prevM.at(e).h1,prevM.at(e).h2,prevM.at(e).h3,prevM.at(e).h4,prevM.at(e).h5,prevM.at(e).h6);
 ROS_INFO("now (%lf , %lf , %lf , %lf , %lf , %lf , %lf )", nowM.at(ptpairs.at(e)).h0, nowM.at(ptpairs.at(e)).h1, nowM.at(ptpairs.at(e)).h2, nowM.at(ptpairs.at(e)).h3, nowM.at(ptpairs.at(e)).h4, nowM.at(ptpairs.at(e)).h5, nowM.at(ptpairs.at(e)).h6);
