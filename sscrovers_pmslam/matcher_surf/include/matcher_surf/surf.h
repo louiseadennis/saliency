@@ -46,20 +46,21 @@ class descriptor
 {
 public:
 	double x,y;
-	Mat d;
-	descriptor();
-	void add(Mat&,int,double,double);
+	int id;
+	std::vector < std::vector < double > > d;
+	descriptor(double, double);
+	void add(Mat&,int);
 	~descriptor();
+	bool compare(descriptor dd, double &average);
 };
 
 class surf_bundle{
 public:
-	double kx, ky;
 	surf_bundle();
-	surf_bundle(std::vector<descriptor> newM);
-	std::vector< std::vector<descriptor> > bundle;
-	void add(std::vector<descriptor> newM);
-	bool inBundle(std::vector<descriptor> in, double dist,double &outputValue);
+
+	std::vector<descriptor> bundle;
+	void add(descriptor newM);
+	bool inBundle(descriptor in, int &outputValue);
 };
 
 
@@ -84,7 +85,7 @@ class surf{
 		void imageCallback(const sensor_msgs::ImageConstPtr& msg_ptr);
 		void featureCallback(const geometry_msgs::PoseArray& msg);
 		void process();
-		std::vector<surf_bundle> database;
+		surf_bundle database;
 
 		std::vector <geometry_msgs::Point32> prev, now;
 		std::vector<geometry_msgs::Pose> latestFeat;

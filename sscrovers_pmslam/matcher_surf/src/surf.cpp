@@ -31,7 +31,7 @@ void surf::featureCallback(const geometry_msgs::PoseArray& msg){
 
 
 void surf::imageCallback(const sensor_msgs::ImageConstPtr& msg_ptr){
-
+ROS_INFO("Got Image");
 	cv_bridge::CvImagePtr cv_ptr;
 	Mat image_;
 	try
@@ -53,6 +53,7 @@ void surf::imageCallback(const sensor_msgs::ImageConstPtr& msg_ptr){
 	//-- Step 2: Calculate descriptors (feature vectors)
 	SurfDescriptorExtractor extractor;
 	extractor.compute( image_, keypoints_1, descriptors_1 );
+ROS_INFO("Got Surf");
 
 /*
 	Mat img_keypoints_1;
@@ -67,6 +68,8 @@ void surf::imageCallback(const sensor_msgs::ImageConstPtr& msg_ptr){
 }
 
 
+
+
 void surf::process(){
 	if(step1_ == step2_){	
 		for ( int u=0; u<latestFeat.size(); u++ ) {
@@ -75,18 +78,20 @@ void surf::process(){
 			int x2 = latestFeat[u].orientation.x + latestFeat[u].orientation.w; 
 			int y2 = latestFeat[u].orientation.y + latestFeat[u].orientation.z;
 			std::vector < descriptor > descs;
-			descriptor desc = descriptor();
+			descriptor desc = descriptor(x1,y1);
 			for (int o=0; o<keypoints_1.size(); o++) {
 				float xx = keypoints_1[o].pt.x;
 				float yy = keypoints_1[o].pt.y;	
-
-				
 				if ( x1 < xx && xx < x2 && y1 < yy && yy < y2){
-					desc.add(descriptors_1, o, xx, yy);
-					ROS_INFO("%i", descriptors_1.cols);
-					
+					desc.add(descriptors_1, o);
 				}
-				descs.push_back(desc);
+			}
+			int out;
+			if (database.inBundle(desc,out)){
+			ROS_INFO("old %i", out);
+			}else{
+			ROS_INFO("Add");
+				database.add(desc);
 			}
 			
 		}
@@ -97,57 +102,103 @@ void surf::process(){
 }
 
 
-bool surf_bundle::inBundle(std::vector<descriptor>, double dist, double &outputValue){
-	for (int i=0; i<bundle.size();i++){
-		//outputValue = bundle.at(i).similarity(newM);
-		if ( outputValue < dist){
-			return true;
+/******* surf_bundle **************/
+
+
+
+
+
+bool surf_bundle::inBundle(descriptor din, int &outputValue){
+	double sum;
+	int j=-1;
+	double min = 1e6;
+	bool test =false;
+	for ( int i=0; i<bundle.size(); i++  ) {
+		if( bundle[i].compare(din, sum)){
+			test = true;
+			if (min > sum){
+				min = sum;
+				j=i;
+			}
 		}
 	}
-	return false;
+
+	outputValue = j;
+	return test;
 };
 
 
-void surf_bundle::add(std::vector<descriptor> newM){
-	if (bundle.size()<2){
-		bundle.push_back(newM);
-	}else{
-
-		bundle.push_back(newM);
-
-	}
-};
-
-surf_bundle::surf_bundle(std::vector<descriptor> newM){
+void surf_bundle::add(descriptor newM){
+	int y = bundle.size();
+	newM.id = y;
 	bundle.push_back(newM);
 };
 
 
+surf_bundle::surf_bundle(){
+
+};
 
 
 /*****	descriptor **************/
 
-descriptor::descriptor(){
-	d = Mat(1,64,CV_64FC1);
-	x=0.0;
-	y=0.0;
+double compareSURFDescriptors(std::vector <double > d1, std::vector <double > d2, double best)
+{
+  double total_cost = 0;
+  for (int i = 0; i < 64; i += 4)
+  {
+    double t0 = d1[i] - d2[i];
+    double t1 = d1[i + 1] - d2[i + 1];
+    double t2 = d1[i + 2] - d2[i + 2];
+    double t3 = d1[i + 3] - d2[i + 3];
+    total_cost += t0 * t0 + t1 * t1 + t2 * t2 + t3 * t3;
+    if (total_cost > best)
+      break;
+  }
+  return total_cost;
+}
+
+descriptor::descriptor(double xx, double yy){
+	x=xx;
+	y=yy;
 };
 descriptor::~descriptor(){
 };
 
-void descriptor::add(Mat &ds, int i ,double xx, double yy){
-	Mat temp(d.rows+1,64,CV_64FC1);
-
-	for(int j=0;j<d.rows ;j++){
-		 d.row(j).copyTo(temp.row(j));
+void descriptor::add(Mat &ds, int i){
+	std::vector < double > fed;
+	for(int j=0;j<64 ;j++){
+		 fed.push_back(ds.at<float>(i,j));
 	}
-	ds.row(i).copyTo(temp.row(temp.rows));
-	d = temp;
-	x = xx;
-	y = yy;
+	d.push_back(fed);
 };
 
-
+bool descriptor::compare(descriptor dd, double &average){
+	double sum = 0;
+	bool test = false;
+	double len =0;
+	double dq, dist1 = 1e6, dist2 = 1e6;
+	for (int i=0; i<d.size();i++){
+		for (int j=0; j<dd.d.size();j++){
+			dq = compareSURFDescriptors(d[i],dd.d[j],dist2);
+			if (dq < dist1)
+			{
+				dist2 = dist1;
+				dist1 = dq;
+			}
+			else if (dq < dist2)
+				dist2 = dq;
+		}
+		if (dist1 < 0.6 * dist2) {
+			sum+=dist1;
+			ROS_INFO("dist %f", dist1);
+			test = true;
+			len++;
+		}
+	}
+	average = sum/len;
+	return test;
+}
 
 
 
